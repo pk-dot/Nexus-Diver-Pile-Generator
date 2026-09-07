@@ -54,4 +54,4 @@ roadmap.html     Geplante Features
 img/             Gegner- und UI-Icons
 ```
 
-Aktuelle Version: **1.0.5**
+Aktuelle Version: **1.0.6**

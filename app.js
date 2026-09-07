@@ -1,4 +1,4 @@
-const APP_VERSION = '1.0.5';
+const APP_VERSION = '1.0.6';
 const CONFIG_STORAGE_KEY = 'pile-generator-config';
 const BOARD_MASK_STORAGE_KEY = 'pile-generator-board-mask';
 
