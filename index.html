@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="de">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="theme-color" content="#10251f" />
+		<meta name="application-version" content="1.0.3" />
+		<title>Pile Generator | Spielfeld-Bodenplatten</title>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<main class="app-shell">
+			<header class="app-header">
+				<div class="brand-lockup">
+					<span class="brand-mark" aria-hidden="true">PG</span>
+					<div>
+						<p class="eyebrow">NEXUS DIVER</p>
+						<h1>Pile Generator</h1>
+					</div>
+				</div>
+				<div class="header-actions">
+					<button id="settings-button" class="settings-button" type="button" aria-controls="settings-view" aria-expanded="false">
+						<img class="settings-icon" src="img/gear-solid-full.svg" alt="" aria-hidden="true" />
+						<span>Settings</span>
+					</button>
+					<div class="header-meta">
+						<span class="status-dot" aria-hidden="true"></span>
+						<span>Quadrant bereit</span>
+					</div>
+				</div>
+			</header>
+
+			<section class="intro" aria-labelledby="page-title">
+				<div>
+					<p class="eyebrow accent-label">BODENPLATTEN-SIMULATOR</p>
+					<h2 id="page-title">
+						Ein neuer Quadrant
+						<br />
+						<em>wartet auf dich.</em>
+					</h2>
+				</div>
+				<p class="intro-copy">Ziehe Ressourcen und Gegner für dein nächstes Spielfeld. Jede Platzierung bleibt fair, zufällig und frei von Doppelbelegungen.</p>
+			</section>
+
+			<section id="settings-view" class="settings-view" aria-labelledby="settings-title" hidden>
+				<div class="settings-heading">
+					<div>
+						<p class="section-kicker">APP KONFIGURATION</p>
+						<h2 id="settings-title">Generator einstellen</h2>
+						<p class="settings-description">Passe Raster, Ziehungsregeln, Ressourcen und Gegner direkt als JSON an.</p>
+					</div>
+					<button id="close-settings-button" class="text-button" type="button">← Zum Generator</button>
+				</div>
+				<div class="settings-layout">
+					<div class="config-editor-panel">
+						<label class="editor-label" for="config-editor">Konfigurations-JSON</label>
+						<textarea id="config-editor" spellcheck="false" aria-describedby="config-help"></textarea>
+						<p id="config-help" class="config-help">Änderungen werden erst nach „Konfiguration übernehmen“ aktiv.</p>
+						<p id="config-message" class="config-message" role="status" aria-live="polite"></p>
+						<div class="settings-actions">
+							<button id="reset-config-button" class="secondary-button" type="button">Auf Default zurücksetzen</button>
+							<button id="apply-config-button" class="primary-button" type="button">Konfiguration übernehmen</button>
+						</div>
+					</div>
+					<aside class="config-info">
+						<p class="section-kicker">AKTUELL AKTIV</p>
+						<div class="config-stat">
+							<strong id="config-grid-stat">7 × 7</strong>
+							<span>Raster</span>
+						</div>
+						<div class="config-stat">
+							<strong id="config-object-stat">4–8</strong>
+							<span>Objekte pro Wurf</span>
+						</div>
+						<div class="config-stat">
+							<strong id="config-enemy-stat">2</strong>
+							<span>Gegner maximal</span>
+						</div>
+						<p class="config-tip">
+							Tipp: Bei Ressourcen bestimmt
+							<code>weight</code>
+							, wie häufig eine Farbe gezogen wird.
+						</p>
+						<p class="storage-note">
+							Gespeichert wird nur in diesem Browser unter
+							<code>pile-generator-config</code>
+							.
+						</p>
+					</aside>
+				</div>
+			</section>
+
+			<section class="workspace" aria-label="Spielfeld und Ziehungsdetails">
+				<div class="board-panel">
+					<div class="panel-heading">
+						<div>
+							<p class="section-kicker">AKTUELLER WURF</p>
+							<h3>
+								Quadrant
+								<span id="roll-number">#001</span>
+							</h3>
+						</div>
+						<div class="object-count" aria-live="polite">
+							<strong id="object-count">0</strong>
+							<span>Objekte</span>
+						</div>
+					</div>
+					<div class="board-wrap">
+						<div id="board" class="board" aria-label="7 mal 7 Spielfeld"></div>
+					</div>
+					<div class="board-footer">
+						<span>
+							<i class="legend-swatch resource-swatch"></i>
+							Ressourcen
+						</span>
+						<span>
+							<i class="legend-swatch enemy-swatch">!</i>
+							Gegner
+						</span>
+						<span class="empty-legend">
+							<i class="legend-swatch empty-swatch"></i>
+							Frei
+						</span>
+					</div>
+				</div>
+
+				<aside class="details-panel" aria-labelledby="details-title">
+					<div class="panel-heading compact-heading">
+						<div>
+							<p class="section-kicker">DEINE ZIEHUNG</p>
+							<h3 id="details-title">Fundstücke</h3>
+						</div>
+						<span id="enemy-limit" class="limit-chip">0 / 2 Gegner</span>
+					</div>
+					<div id="results-list" class="results-list" aria-live="polite"></div>
+					<div class="rules-note">
+						<span class="note-icon" aria-hidden="true">i</span>
+						<p>Maximal 2 Gegner pro Quadrant. Jeder Wurf belegt ein freies Feld.</p>
+					</div>
+					<button id="reroll-button" class="reroll-button" type="button">
+						<span class="button-icon" aria-hidden="true">↻</span>
+						<span>Neu würfeln</span>
+						<span class="button-arrow" aria-hidden="true">→</span>
+					</button>
+				</aside>
+			</section>
+
+			<footer class="app-footer">
+				<span>7 × 7 SPIELFELD</span>
+				<span class="footer-line" aria-hidden="true"></span>
+				<span>RANDOMIZED TERRAIN SYSTEM</span>
+				<span id="app-version" class="app-version"></span>
+				<a class="changelog-link" href="changelog.html">Changelog</a>
+				<a class="changelog-link" href="roadmap.html">Roadmap</a>
+			</footer>
+		</main>
+		<script src="app.js"></script>
+	</body>
+</html>
