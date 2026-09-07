@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="theme-color" content="#10251f" />
-		<meta name="application-version" content="1.0.3" />
+		<meta name="application-version" content="1.0.5" />
 		<title>Pile Generator | Spielfeld-Bodenplatten</title>
 		<link rel="stylesheet" href="styles.css" />
 	</head>
@@ -19,6 +19,10 @@
 					</div>
 				</div>
 				<div class="header-actions">
+					<button id="scan-button" class="scan-button" type="button" aria-controls="scan-view" aria-expanded="false">
+						<img class="scan-icon" src="img/location-pin-lock-solid-full.svg" alt="" aria-hidden="true" />
+						<span>Spielfeld scannen · Beta</span>
+					</button>
 					<button id="settings-button" class="settings-button" type="button" aria-controls="settings-view" aria-expanded="false">
 						<img class="settings-icon" src="img/gear-solid-full.svg" alt="" aria-hidden="true" />
 						<span>Settings</span>
@@ -40,6 +44,72 @@
 					</h2>
 				</div>
 				<p class="intro-copy">Ziehe Ressourcen und Gegner für dein nächstes Spielfeld. Jede Platzierung bleibt fair, zufällig und frei von Doppelbelegungen.</p>
+			</section>
+
+			<section id="scan-view" class="scan-view" aria-labelledby="scan-title" hidden>
+				<div class="settings-heading">
+					<div>
+						<p class="section-kicker">SPIELFELD-ANALYSE</p>
+						<h2 id="scan-title">
+							Foto einlesen
+							<small>[Beta-Version]</small>
+						</h2>
+						<p class="settings-description">Fotografiere das Spielfeld von oben. Dunkle Flächen werden zunächst als Wände erkannt und können danach korrigiert werden.</p>
+					</div>
+					<button id="close-scan-button" class="text-button" type="button">← Zum Generator</button>
+				</div>
+				<div class="scan-layout">
+					<div class="scan-preview-panel">
+						<div class="scan-preview-wrap">
+							<canvas id="scan-canvas" aria-label="Vorschau des eingelesenen Spielfeldfotos"></canvas>
+							<div id="scan-crop-box" class="scan-crop-box" hidden></div>
+							<div id="scan-grid" class="scan-grid" aria-label="Erkannte Spielfeldfelder"></div>
+							<div id="scan-empty" class="scan-empty">Kein Foto – Felder direkt antippen</div>
+						</div>
+						<p id="scan-status" class="config-message" role="status" aria-live="polite">Wähle ein Foto oder öffne die Handykamera.</p>
+					</div>
+					<aside class="scan-controls">
+						<label class="primary-button scan-upload-button" for="scan-file-input">Foto aufnehmen / auswählen</label>
+						<input id="scan-file-input" class="visually-hidden" type="file" accept="image/*" capture="environment" />
+						<p class="config-help">Schwarze Ränder allein sperren kein Feld. Nur dunkle Innenflächen werden erkannt. Tippe Felder an, um die Erkennung umzuschalten.</p>
+						<div id="scan-crop-tools" class="scan-crop-tools" hidden>
+							<p class="scan-crop-title">Quadratischen Bildausschnitt wählen</p>
+							<label for="crop-x">
+								Horizontal
+								<output id="crop-x-value">50</output>
+							</label>
+							<input id="crop-x" type="range" min="0" max="100" value="50" />
+							<label for="crop-y">
+								Vertikal
+								<output id="crop-y-value">50</output>
+							</label>
+							<input id="crop-y" type="range" min="0" max="100" value="50" />
+							<label for="crop-size">
+								Größe
+								<output id="crop-size-value">100</output>
+							</label>
+							<input id="crop-size" type="range" min="45" max="100" value="100" />
+							<button id="crop-image-button" class="primary-button" type="button">Zuschneiden &amp; analysieren</button>
+						</div>
+						<label class="scan-sensitivity-label" for="scan-sensitivity">
+							Erkennungsempfindlichkeit
+							<output id="scan-sensitivity-value">55</output>
+						</label>
+						<input id="scan-sensitivity" class="scan-sensitivity" type="range" min="0" max="100" value="55" />
+						<div class="scan-legend">
+							<span>
+								<i class="scan-legend-swatch playable"></i>
+								Bespielbar
+							</span>
+							<span>
+								<i class="scan-legend-swatch blocked"></i>
+								Wand / gesperrt
+							</span>
+						</div>
+						<button id="reset-scan-button" class="secondary-button" type="button">Alle Felder freigeben</button>
+						<button id="apply-scan-button" class="primary-button" type="button" disabled>Maske übernehmen</button>
+					</aside>
+				</div>
 			</section>
 
 			<section id="settings-view" class="settings-view" aria-labelledby="settings-title" hidden>
@@ -120,6 +190,10 @@
 						<span class="empty-legend">
 							<i class="legend-swatch empty-swatch"></i>
 							Frei
+						</span>
+						<span>
+							<i class="legend-swatch blocked-swatch"></i>
+							Gesperrt
 						</span>
 					</div>
 				</div>

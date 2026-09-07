@@ -1,5 +1,6 @@
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.5';
 const CONFIG_STORAGE_KEY = 'pile-generator-config';
+const BOARD_MASK_STORAGE_KEY = 'pile-generator-board-mask';
 
 const defaultConfig = {
 	grid: {
@@ -34,9 +35,12 @@ const objectCountElement = document.querySelector('#object-count');
 const enemyLimitElement = document.querySelector('#enemy-limit');
 const rollNumberElement = document.querySelector('#roll-number');
 const rerollButton = document.querySelector('#reroll-button');
+const scanButton = document.querySelector('#scan-button');
 const settingsButton = document.querySelector('#settings-button');
 const closeSettingsButton = document.querySelector('#close-settings-button');
+const closeScanButton = document.querySelector('#close-scan-button');
 const settingsView = document.querySelector('#settings-view');
+const scanView = document.querySelector('#scan-view');
 const workspaceElement = document.querySelector('.workspace');
 const introElement = document.querySelector('.intro');
 const configEditor = document.querySelector('#config-editor');
@@ -47,7 +51,34 @@ const configGridStat = document.querySelector('#config-grid-stat');
 const configObjectStat = document.querySelector('#config-object-stat');
 const configEnemyStat = document.querySelector('#config-enemy-stat');
 const versionElement = document.querySelector('#app-version');
+const scanCanvas = document.querySelector('#scan-canvas');
+const scanPreviewWrap = document.querySelector('.scan-preview-wrap');
+const scanCropBox = document.querySelector('#scan-crop-box');
+const scanCropTools = document.querySelector('#scan-crop-tools');
+const cropImageButton = document.querySelector('#crop-image-button');
+const cropXInput = document.querySelector('#crop-x');
+const cropYInput = document.querySelector('#crop-y');
+const cropSizeInput = document.querySelector('#crop-size');
+const cropXValue = document.querySelector('#crop-x-value');
+const cropYValue = document.querySelector('#crop-y-value');
+const cropSizeValue = document.querySelector('#crop-size-value');
+const scanGridElement = document.querySelector('#scan-grid');
+const scanEmptyElement = document.querySelector('#scan-empty');
+const scanStatusElement = document.querySelector('#scan-status');
+const scanFileInput = document.querySelector('#scan-file-input');
+const resetScanButton = document.querySelector('#reset-scan-button');
+const applyScanButton = document.querySelector('#apply-scan-button');
+const scanSensitivity = document.querySelector('#scan-sensitivity');
+const scanSensitivityValue = document.querySelector('#scan-sensitivity-value');
 let rollNumber = 0;
+let blockedCells = new Set();
+let pendingBlockedCells = new Set();
+let sourceCanvas = null;
+let hasSourceImage = false;
+let isCropApplied = false;
+
+scanCanvas.width = 0;
+scanCanvas.height = 0;
 
 versionElement.textContent = `v${APP_VERSION}`;
 
@@ -92,6 +123,7 @@ function updateConfigStats() {
 
 function setSettingsOpen(isOpen) {
 	settingsView.hidden = !isOpen;
+	scanView.hidden = true;
 	workspaceElement.hidden = isOpen;
 	introElement.hidden = isOpen;
 	settingsButton.setAttribute('aria-expanded', String(isOpen));
@@ -101,6 +133,180 @@ function setSettingsOpen(isOpen) {
 		configMessage.textContent = '';
 		configEditor.focus();
 	}
+}
+
+function setScanOpen(isOpen) {
+	scanView.hidden = !isOpen;
+	settingsView.hidden = true;
+	workspaceElement.hidden = isOpen;
+	introElement.hidden = isOpen;
+	scanButton.setAttribute('aria-expanded', String(isOpen));
+	if (isOpen) scanStatusElement.textContent = 'Ohne Foto Felder direkt antippen oder ein Spielfeldfoto laden.';
+}
+
+function getCellLabel(row, column) {
+	return `${config.grid.yAxisLabels[row]}${config.grid.xAxisLabels[column]}`;
+}
+
+function renderScanGrid() {
+	scanGridElement.innerHTML = '';
+	scanGridElement.style.setProperty('--scan-columns', config.grid.columns);
+	scanGridElement.style.setProperty('--scan-rows', config.grid.rows);
+	scanGridElement.hidden = hasSourceImage && !isCropApplied;
+	scanEmptyElement.hidden = hasSourceImage;
+	scanCropBox.hidden = !hasSourceImage || isCropApplied;
+	scanCropTools.hidden = !hasSourceImage || isCropApplied;
+	applyScanButton.disabled = false;
+	scanPreviewWrap.classList.toggle('has-image', Boolean(scanCanvas.width));
+	if (scanCanvas.width) scanPreviewWrap.style.aspectRatio = `${scanCanvas.width} / ${scanCanvas.height}`;
+
+	for (let row = 0; row < config.grid.rows; row += 1) {
+		for (let column = 0; column < config.grid.columns; column += 1) {
+			const label = getCellLabel(row, column);
+			const cell = document.createElement('button');
+			cell.type = 'button';
+			cell.className = `scan-cell${pendingBlockedCells.has(label) ? ' blocked' : ''}`;
+			cell.dataset.label = label;
+			cell.textContent = label;
+			cell.setAttribute('aria-label', `${label}: ${pendingBlockedCells.has(label) ? 'gesperrt' : 'bespielbar'}`);
+			cell.addEventListener('click', () => {
+				if (pendingBlockedCells.has(label)) pendingBlockedCells.delete(label);
+				else pendingBlockedCells.add(label);
+				renderScanGrid();
+			});
+			scanGridElement.append(cell);
+		}
+	}
+}
+
+function updateCropPreview() {
+	if (!sourceCanvas || !hasSourceImage || isCropApplied) return;
+	const cropSize = (Math.min(sourceCanvas.width, sourceCanvas.height) * Number(cropSizeInput.value)) / 100;
+	const maxX = sourceCanvas.width - cropSize;
+	const maxY = sourceCanvas.height - cropSize;
+	const cropX = (maxX * Number(cropXInput.value)) / 100;
+	const cropY = (maxY * Number(cropYInput.value)) / 100;
+	cropXValue.textContent = cropXInput.value;
+	cropYValue.textContent = cropYInput.value;
+	cropSizeValue.textContent = cropSizeInput.value;
+	scanCropBox.style.left = `${(cropX / sourceCanvas.width) * 100}%`;
+	scanCropBox.style.top = `${(cropY / sourceCanvas.height) * 100}%`;
+	scanCropBox.style.width = `${(cropSize / sourceCanvas.width) * 100}%`;
+	scanCropBox.style.height = `${(cropSize / sourceCanvas.height) * 100}%`;
+}
+
+function cropAndAnalyze() {
+	if (!sourceCanvas) return;
+	const cropSize = (Math.min(sourceCanvas.width, sourceCanvas.height) * Number(cropSizeInput.value)) / 100;
+	const cropX = ((sourceCanvas.width - cropSize) * Number(cropXInput.value)) / 100;
+	const cropY = ((sourceCanvas.height - cropSize) * Number(cropYInput.value)) / 100;
+	const outputSize = Math.min(1400, Math.max(700, Math.round(cropSize)));
+	scanCanvas.width = outputSize;
+	scanCanvas.height = outputSize;
+	scanCanvas.getContext('2d', { willReadFrequently: true }).drawImage(sourceCanvas, cropX, cropY, cropSize, cropSize, 0, 0, outputSize, outputSize);
+	isCropApplied = true;
+	pendingBlockedCells = new Set();
+	renderScanGrid();
+	analyzeScanImage();
+}
+
+function setScanStatus(message, state = '') {
+	scanStatusElement.textContent = message;
+	scanStatusElement.className = `config-message${state ? ` ${state}` : ''}`;
+}
+
+function analyzeScanImage() {
+	if (!scanCanvas.width || !scanCanvas.height) return;
+	const context = scanCanvas.getContext('2d', { willReadFrequently: true });
+	const imageData = context.getImageData(0, 0, scanCanvas.width, scanCanvas.height).data;
+	const sampleStep = Math.max(4, Math.floor(Math.min(scanCanvas.width, scanCanvas.height) / 120));
+	const sensitivity = Number(scanSensitivity.value) / 100;
+	const blackRatioThreshold = 0.3 - sensitivity * 0.27;
+	const darkRatioThreshold = 0.5 - sensitivity * 0.4;
+	const brightnessFactor = 0.35 + sensitivity * 0.4;
+	let globalBrightness = 0;
+	let globalSamples = 0;
+
+	for (let y = 0; y < scanCanvas.height; y += sampleStep) {
+		for (let x = 0; x < scanCanvas.width; x += sampleStep) {
+			const index = (y * scanCanvas.width + x) * 4;
+			globalBrightness += imageData[index] * 0.299 + imageData[index + 1] * 0.587 + imageData[index + 2] * 0.114;
+			globalSamples += 1;
+		}
+	}
+
+	const averageBrightness = globalBrightness / globalSamples;
+	const threshold = Math.max(34, averageBrightness * 0.58);
+	pendingBlockedCells = new Set();
+
+	for (let row = 0; row < config.grid.rows; row += 1) {
+		for (let column = 0; column < config.grid.columns; column += 1) {
+			const startX = Math.floor(((column + 0.2) * scanCanvas.width) / config.grid.columns);
+			const endX = Math.floor(((column + 0.8) * scanCanvas.width) / config.grid.columns);
+			const startY = Math.floor(((row + 0.2) * scanCanvas.height) / config.grid.rows);
+			const endY = Math.floor(((row + 0.8) * scanCanvas.height) / config.grid.rows);
+			let brightness = 0;
+			let darkPixels = 0;
+			let blackPixels = 0;
+			let samples = 0;
+
+			for (let y = startY; y < endY; y += sampleStep) {
+				for (let x = startX; x < endX; x += sampleStep) {
+					const index = (y * scanCanvas.width + x) * 4;
+					const red = imageData[index];
+					const green = imageData[index + 1];
+					const blue = imageData[index + 2];
+					const luminance = red * 0.299 + green * 0.587 + blue * 0.114;
+					brightness += luminance;
+					if (luminance < 58) darkPixels += 1;
+					if (Math.max(red, green, blue) < 70 && Math.max(red, green, blue) - Math.min(red, green, blue) < 30) blackPixels += 1;
+					samples += 1;
+				}
+			}
+
+			const cellBrightness = brightness / samples;
+			const darkRatio = darkPixels / samples;
+			const blackRatio = blackPixels / samples;
+			if ((cellBrightness < threshold && cellBrightness < averageBrightness * brightnessFactor) || (darkRatio > darkRatioThreshold && cellBrightness < averageBrightness * 0.72) || blackRatio > blackRatioThreshold) {
+				pendingBlockedCells.add(getCellLabel(row, column));
+			}
+		}
+	}
+
+	renderScanGrid();
+	applyScanButton.disabled = false;
+	setScanStatus(`${pendingBlockedCells.size} Felder als Wand erkannt bei ${scanSensitivity.value}% Empfindlichkeit. Bitte prüfen und bei Bedarf antippen.`, 'success');
+}
+
+function loadScanFile(file) {
+	if (!file) return;
+	const image = new Image();
+	const imageUrl = URL.createObjectURL(file);
+	image.onload = () => {
+		const maxDimension = 1400;
+		const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+		sourceCanvas = document.createElement('canvas');
+		sourceCanvas.width = Math.round(image.naturalWidth * scale);
+		sourceCanvas.height = Math.round(image.naturalHeight * scale);
+		sourceCanvas.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0, sourceCanvas.width, sourceCanvas.height);
+		scanCanvas.width = sourceCanvas.width;
+		scanCanvas.height = sourceCanvas.height;
+		scanCanvas.getContext('2d', { willReadFrequently: true }).drawImage(sourceCanvas, 0, 0);
+		hasSourceImage = true;
+		isCropApplied = false;
+		cropXInput.value = '50';
+		cropYInput.value = '50';
+		cropSizeInput.value = '100';
+		renderScanGrid();
+		updateCropPreview();
+		URL.revokeObjectURL(imageUrl);
+		setScanStatus('Ausschnitt einstellen und anschließend zuschneiden.', 'success');
+	};
+	image.onerror = () => {
+		URL.revokeObjectURL(imageUrl);
+		setScanStatus('Das Foto konnte nicht gelesen werden.', 'error');
+	};
+	image.src = imageUrl;
 }
 
 function randomInteger(min, max) {
@@ -145,11 +351,12 @@ function createCoordinates() {
 
 function generateObjects() {
 	const amount = randomInteger(config.generation.minObjects, config.generation.maxObjects);
-	const availableCoordinates = createCoordinates();
+	const availableCoordinates = createCoordinates().filter((coordinate) => !blockedCells.has(coordinate.label));
+	const objectAmount = Math.min(amount, availableCoordinates.length);
 	const objects = [];
 	let enemyCount = 0;
 
-	for (let index = 0; index < amount; index += 1) {
+	for (let index = 0; index < objectAmount; index += 1) {
 		const coordinateIndex = Math.floor(Math.random() * availableCoordinates.length);
 		const coordinate = availableCoordinates.splice(coordinateIndex, 1)[0];
 		const wantsEnemy = Math.random() < 0.28;
@@ -177,11 +384,12 @@ function renderBoard(objects) {
 		config.grid.xAxisLabels.forEach((columnLabel, column) => {
 			const label = `${rowLabel}${columnLabel}`;
 			const object = occupied.get(label);
+			const isBlocked = blockedCells.has(label);
 			const cell = document.createElement('div');
-			cell.className = `cell${object ? ` occupied ${object.type}` : ''}`;
+			cell.className = `cell${isBlocked ? ' blocked' : ''}${object ? ` occupied ${object.type}` : ''}`;
 			cell.style.animationDelay = `${(row * config.grid.columns + column) * 12}ms`;
-			cell.setAttribute('aria-label', object ? `${label}: ${object.item.name}` : `${label}: frei`);
-			cell.title = object ? `${label}: ${object.item.name}` : `${label}: frei`;
+			cell.setAttribute('aria-label', object ? `${label}: ${object.item.name}` : isBlocked ? `${label}: gesperrt` : `${label}: frei`);
+			cell.title = object ? `${label}: ${object.item.name}` : isBlocked ? `${label}: gesperrt` : `${label}: frei`;
 
 			if (object) {
 				if (object.type === 'enemy') {
@@ -253,6 +461,30 @@ function generateAndRender() {
 }
 
 rerollButton.addEventListener('click', generateAndRender);
+scanButton.addEventListener('click', () => setScanOpen(scanView.hidden));
+closeScanButton.addEventListener('click', () => setScanOpen(false));
+scanFileInput.addEventListener('change', (event) => loadScanFile(event.target.files[0]));
+for (const input of [cropXInput, cropYInput, cropSizeInput]) input.addEventListener('input', updateCropPreview);
+cropImageButton.addEventListener('click', cropAndAnalyze);
+scanSensitivity.addEventListener('input', () => {
+	scanSensitivityValue.value = scanSensitivity.value;
+	scanSensitivityValue.textContent = scanSensitivity.value;
+	if (scanCanvas.width) analyzeScanImage();
+});
+scanSensitivity.addEventListener('change', () => {
+	if (scanCanvas.width) analyzeScanImage();
+});
+resetScanButton.addEventListener('click', () => {
+	pendingBlockedCells = new Set();
+	renderScanGrid();
+	setScanStatus('Alle Felder sind wieder als bespielbar markiert.', 'success');
+});
+applyScanButton.addEventListener('click', () => {
+	blockedCells = new Set(pendingBlockedCells);
+	localStorage.setItem(BOARD_MASK_STORAGE_KEY, JSON.stringify([...blockedCells]));
+	generateAndRender();
+	setScanOpen(false);
+});
 settingsButton.addEventListener('click', () => setSettingsOpen(settingsView.hidden));
 closeSettingsButton.addEventListener('click', () => setSettingsOpen(false));
 resetConfigButton.addEventListener('click', () => {
@@ -291,5 +523,15 @@ try {
 	localStorage.removeItem(CONFIG_STORAGE_KEY);
 }
 
+try {
+	const savedBoardMask = localStorage.getItem(BOARD_MASK_STORAGE_KEY);
+	if (savedBoardMask) blockedCells = new Set(JSON.parse(savedBoardMask));
+} catch {
+	localStorage.removeItem(BOARD_MASK_STORAGE_KEY);
+}
+
+localStorage.removeItem('pile-generator-board-image');
+
 updateConfigStats();
+renderScanGrid();
 generateAndRender();
