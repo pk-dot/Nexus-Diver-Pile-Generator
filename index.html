@@ -3,8 +3,8 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="theme-color" content="#10251f" />
-		<meta name="application-version" content="1.1.0" />
+		<meta name="theme-color" content="#060a14" />
+		<meta name="application-version" content="1.2.0" />
 		<title>Pile Generator | Spielfeld-Bodenplatten</title>
 		<link rel="stylesheet" href="styles.css" />
 	</head>
@@ -12,7 +12,7 @@
 		<main class="app-shell">
 			<header class="app-header">
 				<div class="brand-lockup">
-					<span class="brand-mark" aria-hidden="true">PG</span>
+					<span class="brand-mark" aria-hidden="true"><span>ND</span></span>
 					<div>
 						<p class="eyebrow">NEXUS DIVER</p>
 						<h1>Pile Generator</h1>
@@ -20,11 +20,11 @@
 				</div>
 				<div class="header-actions">
 					<button id="scan-button" class="scan-button" type="button" aria-controls="scan-view" aria-expanded="false">
-						<img class="scan-icon" src="img/location-pin-lock-solid-full.svg" alt="" aria-hidden="true" />
+						<span class="scan-icon icon-mask" style="--icon: url('img/location-pin-lock-solid-full.svg')" aria-hidden="true"></span>
 						<span>Spielfeld scannen · Beta</span>
 					</button>
 					<button id="settings-button" class="settings-button" type="button" aria-controls="settings-view" aria-expanded="false">
-						<img class="settings-icon" src="img/gear-solid-full.svg" alt="" aria-hidden="true" />
+						<span class="settings-icon icon-mask" style="--icon: url('img/gear-solid-full.svg')" aria-hidden="true"></span>
 						<span>Settings</span>
 					</button>
 					<div class="header-meta">
@@ -43,7 +43,14 @@
 						<em>wartet auf dich.</em>
 					</h2>
 				</div>
-				<p class="intro-copy">Ziehe Ressourcen und Gegner für dein nächstes Spielfeld. Jede Platzierung bleibt fair, zufällig und frei von Doppelbelegungen.</p>
+				<div class="intro-side">
+					<p class="intro-copy">Ziehe Ressourcen und Gegner für dein nächstes Spielfeld. Jede Platzierung bleibt fair, zufällig und frei von Doppelbelegungen.</p>
+					<div class="intro-stats">
+						<div class="intro-stat"><strong id="intro-grid-stat">7 × 7</strong><span>Raster</span></div>
+						<div class="intro-stat"><strong id="intro-object-stat">4–8</strong><span>Objekte / Wurf</span></div>
+						<div class="intro-stat is-danger"><strong id="intro-enemy-stat">2</strong><span>Gegner max.</span></div>
+					</div>
+				</div>
 			</section>
 
 			<section id="scan-view" class="scan-view" aria-labelledby="scan-title" hidden>
@@ -171,7 +178,7 @@
 							</h3>
 						</div>
 						<div class="object-count" aria-live="polite">
-							<strong id="object-count">0</strong>
+							<strong id="object-count">00</strong>
 							<span>Objekte</span>
 						</div>
 					</div>

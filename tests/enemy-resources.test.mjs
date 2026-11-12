@@ -26,7 +26,12 @@ function createElement(tagName = 'div') {
 		disabled: false,
 		width: 0,
 		height: 0,
-		style: { setProperty() {} },
+		style: {
+			properties: {},
+			setProperty(name, value) {
+				this.properties[name] = String(value);
+			},
+		},
 		classList: { toggle() {}, add() {}, remove() {} },
 		append(...nodes) {
 			this.children.push(...nodes);
@@ -147,8 +152,11 @@ test('Spielfeld zeigt Icon und zwei farbige Punkte am Gegner', () => {
 	assert.ok(cell, 'Gegnerfeld wird gerendert');
 	const dots = cell.children.filter((child) => child.className.startsWith('enemy-resource-dot'));
 	assert.equal(dots.length, 2);
-	assert.equal(dots[0].style.backgroundColor, green.color);
-	assert.equal(dots[1].style.backgroundColor, blue.color);
+	assert.equal(dots[0].style.properties['--resource-color'], green.color);
+	assert.equal(dots[1].style.properties['--resource-color'], blue.color);
+	const icon = cell.children.find((child) => child.className.includes('enemy-marker'));
+	assert.equal(icon.style.properties['--icon'], `url("${app.config.enemies[0].icon}")`);
+	assert.equal(cell.dataset.label, 'A1');
 	assert.equal(cell.attributes['aria-label'], 'A1: Pirat mit Grün + Blau');
 });
 
@@ -164,4 +172,14 @@ test('Fundstück-Liste zeigt Namen und Punkte der Gegner-Ressourcen', () => {
 	const entries = loot.children.filter((child) => child.className === 'result-resource');
 	assert.equal(entries.length, 2);
 	assert.deepEqual(entries.map((entry) => entry.children[1].textContent), ['Gelb', 'Gelb']);
+});
+
+test('Ressourcen in der Liste erscheinen als Planet in Config-Farbe', () => {
+	const app = loadApp();
+	const purple = app.config.resources[3];
+	app.renderResults([{ row: 0, column: 0, label: 'A1', type: 'resource', item: purple }]);
+	const list = app.elements.get('#results-list');
+	const planet = findAll(list, (element) => element.className === 'planet')[0];
+	assert.ok(planet, 'Planet wird gerendert');
+	assert.equal(planet.style.properties['--resource-color'], purple.color);
 });

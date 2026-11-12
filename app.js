@@ -1,4 +1,4 @@
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 const CONFIG_STORAGE_KEY = 'pile-generator-config';
 const BOARD_MASK_STORAGE_KEY = 'pile-generator-board-mask';
 const ENEMY_RESOURCE_COUNT = 2;
@@ -51,6 +51,9 @@ const resetConfigButton = document.querySelector('#reset-config-button');
 const configGridStat = document.querySelector('#config-grid-stat');
 const configObjectStat = document.querySelector('#config-object-stat');
 const configEnemyStat = document.querySelector('#config-enemy-stat');
+const introGridStat = document.querySelector('#intro-grid-stat');
+const introObjectStat = document.querySelector('#intro-object-stat');
+const introEnemyStat = document.querySelector('#intro-enemy-stat');
 const versionElement = document.querySelector('#app-version');
 const scanCanvas = document.querySelector('#scan-canvas');
 const scanPreviewWrap = document.querySelector('.scan-preview-wrap');
@@ -117,9 +120,15 @@ function validateConfig(candidate) {
 }
 
 function updateConfigStats() {
-	configGridStat.textContent = `${config.grid.columns} × ${config.grid.rows}`;
-	configObjectStat.textContent = `${config.generation.minObjects}–${config.generation.maxObjects}`;
-	configEnemyStat.textContent = config.generation.maxEnemies;
+	const gridText = `${config.grid.columns} × ${config.grid.rows}`;
+	const objectText = `${config.generation.minObjects}–${config.generation.maxObjects}`;
+	const enemyText = String(config.generation.maxEnemies);
+	configGridStat.textContent = gridText;
+	configObjectStat.textContent = objectText;
+	configEnemyStat.textContent = enemyText;
+	introGridStat.textContent = gridText;
+	introObjectStat.textContent = objectText;
+	introEnemyStat.textContent = enemyText;
 }
 
 function setSettingsOpen(isOpen) {
@@ -331,11 +340,9 @@ function chooseRandom(items) {
 }
 
 function createEnemyIcon(enemy, className) {
-	const icon = document.createElement('img');
-	const source = enemy.id === 'pirate' ? 'img/skull-solid-full.svg' : 'img/alien-solid-full.svg';
-	icon.className = className;
-	icon.src = source;
-	icon.alt = '';
+	const icon = document.createElement('span');
+	icon.className = `${className} icon-mask`;
+	icon.style.setProperty('--icon', `url("${enemy.icon}")`);
 	icon.setAttribute('aria-hidden', 'true');
 	return icon;
 }
@@ -347,7 +354,7 @@ function rollEnemyResources(count = ENEMY_RESOURCE_COUNT) {
 function createResourceDot(resource, className) {
 	const dot = document.createElement('span');
 	dot.className = className;
-	dot.style.backgroundColor = resource.color;
+	dot.style.setProperty('--resource-color', resource.color);
 	dot.setAttribute('aria-hidden', 'true');
 	return dot;
 }
@@ -408,6 +415,7 @@ function renderBoard(objects) {
 			const object = occupied.get(label);
 			const isBlocked = blockedCells.has(label);
 			const cell = document.createElement('div');
+			cell.dataset.label = label;
 			cell.className = `cell${isBlocked ? ' blocked' : ''}${object ? ` occupied ${object.type}` : ''}`;
 			cell.style.animationDelay = `${(row * config.grid.columns + column) * 12}ms`;
 			const cellDescription = object ? `${label}: ${describeObject(object)}` : isBlocked ? `${label}: gesperrt` : `${label}: frei`;
@@ -423,7 +431,7 @@ function renderBoard(objects) {
 				} else {
 					const marker = document.createElement('span');
 					marker.className = 'cell-marker';
-					marker.style.backgroundColor = object.item.color;
+					marker.style.setProperty('--resource-color', object.item.color);
 					cell.append(marker);
 				}
 			}
@@ -450,17 +458,21 @@ function renderResults(objects) {
 	objects.forEach((object, index) => {
 		const result = document.createElement('div');
 		result.className = 'result-item';
+		result.classList.toggle('is-enemy', object.type === 'enemy');
 		result.style.animationDelay = `${index * 55}ms`;
 
 		const main = document.createElement('div');
 		main.className = 'result-main';
 		const icon = document.createElement('span');
 		icon.className = object.type === 'enemy' ? 'result-icon enemy-result-icon' : 'result-icon';
-		icon.style.backgroundColor = object.type === 'enemy' ? 'var(--danger)' : object.item.color;
 		if (object.type === 'enemy') {
 			icon.append(createEnemyIcon(object.item, 'result-enemy-marker'));
 		} else {
-			icon.textContent = '•';
+			const planet = document.createElement('span');
+			planet.className = 'planet';
+			planet.style.setProperty('--resource-color', object.item.color);
+			planet.setAttribute('aria-hidden', 'true');
+			icon.append(planet);
 		}
 
 		const copy = document.createElement('div');
@@ -508,7 +520,7 @@ function generateAndRender() {
 	const enemyCount = objects.filter((object) => object.type === 'enemy').length;
 	rollNumber += 1;
 	rollNumberElement.textContent = `#${String(rollNumber).padStart(3, '0')}`;
-	objectCountElement.textContent = objects.length;
+	objectCountElement.textContent = String(objects.length).padStart(2, '0');
 	enemyLimitElement.textContent = `${enemyCount} / ${config.generation.maxEnemies} Gegner`;
 	renderBoard(objects);
 	renderResults(objects);
