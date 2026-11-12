@@ -7,6 +7,7 @@ Leichte HTML-, CSS- und JavaScript-WebApp für die zufällige Generierung von Sp
 - 7×7-Spielfeld mit X-/Y-Koordinaten
 - 4 bis 8 zufällige Ressourcen und Gegner pro Wurf
 - Maximal 2 Gegner pro Generierung
+- Monster und Piraten tragen je zwei zufällige Ressourcen (Doppelungen erlaubt, Gewichte werden beachtet)
 - Keine doppelten Feldbelegungen
 - Konfigurierbare Ressourcen, Gegner und Generierungsregeln
 - Settings mit JSON-Editor und lokaler Speicherung im Browser
@@ -31,6 +32,14 @@ Danach im Browser öffnen:
 http://localhost:4173
 ```
 
+## Tests
+
+Die Tests nutzen den eingebauten Node-Testrunner, ohne Abhängigkeiten:
+
+```bash
+node --test tests/
+```
+
 ## Konfiguration
 
 Über **Settings** kann das JSON direkt bearbeitet werden. Änderungen werden nach „Konfiguration übernehmen“ im Browser unter dem Schlüssel `pile-generator-config` gespeichert.
@@ -52,6 +61,7 @@ styles.css       Responsive Gestaltung
 changelog.html   Versionshistorie
 roadmap.html     Geplante Features
 img/             Gegner- und UI-Icons
+tests/           Automatisierte Tests (node --test)
 ```
 
-Aktuelle Version: **1.0.6**
+Aktuelle Version: **1.1.0**

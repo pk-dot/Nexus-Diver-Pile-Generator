@@ -293,6 +293,22 @@ button {
 	display: block;
 	object-fit: contain;
 }
+.enemy-resource-dot {
+	position: absolute;
+	bottom: 7%;
+	width: 24%;
+	height: 24%;
+	border: 1.5px solid #fff;
+	border-radius: 50%;
+	box-shadow: 0 1px 3px rgba(20, 33, 29, 0.28);
+	box-sizing: border-box;
+}
+.enemy-resource-dot-1 {
+	left: 7%;
+}
+.enemy-resource-dot-2 {
+	right: 7%;
+}
 .result-enemy-marker {
 	width: 22px;
 	height: 22px;
@@ -390,6 +406,33 @@ button {
 	color: var(--muted);
 	font-family: 'DM Mono', monospace;
 	font-size: 9px;
+}
+.result-copy {
+	min-width: 0;
+}
+.result-enemy-resources {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	margin-top: 4px;
+	font-size: 11px;
+	font-weight: 500;
+}
+.result-resource {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	white-space: nowrap;
+}
+.result-resource-dot {
+	width: 9px;
+	height: 9px;
+	flex: 0 0 9px;
+	border-radius: 50%;
+}
+.result-resource-separator {
+	color: var(--muted);
 }
 .result-coordinate {
 	color: var(--muted);

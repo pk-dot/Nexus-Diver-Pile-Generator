@@ -1,6 +1,7 @@
-const APP_VERSION = '1.0.6';
+const APP_VERSION = '1.1.0';
 const CONFIG_STORAGE_KEY = 'pile-generator-config';
 const BOARD_MASK_STORAGE_KEY = 'pile-generator-board-mask';
+const ENEMY_RESOURCE_COUNT = 2;
 
 const defaultConfig = {
 	grid: {
@@ -339,6 +340,23 @@ function createEnemyIcon(enemy, className) {
 	return icon;
 }
 
+function rollEnemyResources(count = ENEMY_RESOURCE_COUNT) {
+	return Array.from({ length: count }, () => chooseWeighted(config.resources));
+}
+
+function createResourceDot(resource, className) {
+	const dot = document.createElement('span');
+	dot.className = className;
+	dot.style.backgroundColor = resource.color;
+	dot.setAttribute('aria-hidden', 'true');
+	return dot;
+}
+
+function describeObject(object) {
+	if (object.type !== 'enemy' || !object.resources?.length) return object.item.name;
+	return `${object.item.name} mit ${object.resources.map((resource) => resource.name).join(' + ')}`;
+}
+
 function createCoordinates() {
 	const coordinates = [];
 	for (let row = 0; row < config.grid.rows; row += 1) {
@@ -363,8 +381,12 @@ function generateObjects() {
 		const type = wantsEnemy && enemyCount < config.generation.maxEnemies ? 'enemy' : 'resource';
 		const item = type === 'enemy' ? chooseRandom(config.enemies) : chooseWeighted(config.resources);
 
-		if (type === 'enemy') enemyCount += 1;
-		objects.push({ ...coordinate, type, item });
+		if (type === 'enemy') {
+			enemyCount += 1;
+			objects.push({ ...coordinate, type, item, resources: rollEnemyResources() });
+		} else {
+			objects.push({ ...coordinate, type, item });
+		}
 	}
 
 	return objects;
@@ -388,12 +410,16 @@ function renderBoard(objects) {
 			const cell = document.createElement('div');
 			cell.className = `cell${isBlocked ? ' blocked' : ''}${object ? ` occupied ${object.type}` : ''}`;
 			cell.style.animationDelay = `${(row * config.grid.columns + column) * 12}ms`;
-			cell.setAttribute('aria-label', object ? `${label}: ${object.item.name}` : isBlocked ? `${label}: gesperrt` : `${label}: frei`);
-			cell.title = object ? `${label}: ${object.item.name}` : isBlocked ? `${label}: gesperrt` : `${label}: frei`;
+			const cellDescription = object ? `${label}: ${describeObject(object)}` : isBlocked ? `${label}: gesperrt` : `${label}: frei`;
+			cell.setAttribute('aria-label', cellDescription);
+			cell.title = cellDescription;
 
 			if (object) {
 				if (object.type === 'enemy') {
 					cell.append(createEnemyIcon(object.item, 'enemy-marker'));
+					object.resources.forEach((resource, resourceIndex) => {
+						cell.append(createResourceDot(resource, `enemy-resource-dot enemy-resource-dot-${resourceIndex + 1}`));
+					});
 				} else {
 					const marker = document.createElement('span');
 					marker.className = 'cell-marker';
@@ -438,7 +464,35 @@ function renderResults(objects) {
 		}
 
 		const copy = document.createElement('div');
-		copy.innerHTML = `<div class="result-name">${object.item.name}</div><div class="result-type">${object.type === 'enemy' ? 'GEGNER' : 'RESSOURCE'}</div>`;
+		copy.className = 'result-copy';
+		const name = document.createElement('div');
+		name.className = 'result-name';
+		name.textContent = object.item.name;
+		const type = document.createElement('div');
+		type.className = 'result-type';
+		type.textContent = object.type === 'enemy' ? 'GEGNER' : 'RESSOURCE';
+		copy.append(name, type);
+
+		if (object.type === 'enemy') {
+			const loot = document.createElement('div');
+			loot.className = 'result-enemy-resources';
+			loot.setAttribute('aria-label', `Ressourcen: ${object.resources.map((resource) => resource.name).join(' und ')}`);
+			object.resources.forEach((resource, resourceIndex) => {
+				if (resourceIndex > 0) {
+					const separator = document.createElement('span');
+					separator.className = 'result-resource-separator';
+					separator.textContent = '+';
+					separator.setAttribute('aria-hidden', 'true');
+					loot.append(separator);
+				}
+				const entry = document.createElement('span');
+				entry.className = 'result-resource';
+				entry.setAttribute('aria-hidden', 'true');
+				entry.append(createResourceDot(resource, 'result-resource-dot'), document.createTextNode(resource.name));
+				loot.append(entry);
+			});
+			copy.append(loot);
+		}
 		main.append(icon, copy);
 
 		const coordinate = document.createElement('span');
