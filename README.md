@@ -32,6 +32,16 @@ Danach im Browser öffnen:
 http://localhost:4173
 ```
 
+## Deployment
+
+Mit dem Build-Skript wird der Ordner `dist/` mit allen Dateien für den Server erzeugt:
+
+```bash
+./build-dist.sh
+```
+
+Anschließend den Inhalt von `dist/` auf den Webserver hochladen. Der Ordner wird bei jedem Aufruf neu erstellt und ist per `.gitignore` vom Repository ausgeschlossen.
+
 ## Tests
 
 Die Tests nutzen den eingebauten Node-Testrunner, ohne Abhängigkeiten:
@@ -62,6 +72,7 @@ changelog.html   Versionshistorie
 roadmap.html     Geplante Features
 img/             Gegner- und UI-Icons
 tests/           Automatisierte Tests (node --test)
+build-dist.sh    Erstellt dist/ für den Server
 ```
 
 Aktuelle Version: **1.1.0**
