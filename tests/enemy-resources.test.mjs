@@ -36,6 +36,9 @@ function createElement(tagName = 'div') {
 		append(...nodes) {
 			this.children.push(...nodes);
 		},
+		replaceChildren(...nodes) {
+			this.children = [...nodes];
+		},
 		setAttribute(name, value) {
 			this.attributes[name] = String(value);
 		},
@@ -75,7 +78,7 @@ function loadApp({ resources, random = Math.random } = {}) {
 		},
 	};
 	vm.createContext(context);
-	vm.runInContext(`${appSource}\n;globalThis.__app = { config, generateObjects, rollEnemyResources, describeObject, renderBoard, renderResults, ENEMY_RESOURCE_COUNT };`, context);
+	vm.runInContext(`${appSource}\n;globalThis.__app = { config, generateObjects, rollEnemyResources, describeObject, renderBoard, renderResults, generateAndRender, ENEMY_RESOURCE_COUNT };`, context);
 	return { ...context.__app, elements };
 }
 
@@ -182,4 +185,17 @@ test('Ressourcen in der Liste erscheinen als Planet in Config-Farbe', () => {
 	const planet = findAll(list, (element) => element.className === 'planet')[0];
 	assert.ok(planet, 'Planet wird gerendert');
 	assert.equal(planet.style.properties['--resource-color'], purple.color);
+});
+
+test('Gegner-Balken zeigt so viele gefüllte Segmente wie Gegner im Wurf', () => {
+	const app = loadApp();
+	for (let run = 0; run < 200; run += 1) {
+		app.generateAndRender();
+		const bar = app.elements.get('#enemy-meter-bar');
+		const filled = bar.children.filter((segment) => segment.className === 'is-filled').length;
+		const enemies = Number(app.elements.get('#enemy-limit').textContent.split(' ')[0]);
+		assert.equal(bar.children.length, app.config.generation.maxEnemies);
+		assert.equal(filled, enemies);
+		assert.equal(app.elements.get('#enemy-meter-value').textContent, `${enemies} / ${app.config.generation.maxEnemies}`);
+	}
 });

@@ -2,14 +2,14 @@
 <html lang="de">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 		<meta name="theme-color" content="#060a14" />
-		<meta name="application-version" content="1.2.0" />
+		<meta name="application-version" content="1.3.0" />
 		<title>Pile Generator | Spielfeld-Bodenplatten</title>
 		<link rel="stylesheet" href="styles.css" />
 	</head>
 	<body>
-		<main class="app-shell">
+		<div class="app-shell">
 			<header class="app-header">
 				<div class="brand-lockup">
 					<span class="brand-mark" aria-hidden="true"><span>ND</span></span>
@@ -18,14 +18,16 @@
 						<h1>Pile Generator</h1>
 					</div>
 				</div>
+				<p class="header-tagline">// BODENPLATTEN-SIMULATOR</p>
 				<div class="header-actions">
 					<button id="scan-button" class="scan-button" type="button" aria-controls="scan-view" aria-expanded="false">
 						<span class="scan-icon icon-mask" style="--icon: url('img/location-pin-lock-solid-full.svg')" aria-hidden="true"></span>
-						<span>Spielfeld scannen · Beta</span>
+						<span class="btn-label">Spielfeld scannen · Beta</span>
+						<span class="beta-badge" aria-hidden="true">BETA</span>
 					</button>
 					<button id="settings-button" class="settings-button" type="button" aria-controls="settings-view" aria-expanded="false">
 						<span class="settings-icon icon-mask" style="--icon: url('img/gear-solid-full.svg')" aria-hidden="true"></span>
-						<span>Settings</span>
+						<span class="btn-label">Settings</span>
 					</button>
 					<div class="header-meta">
 						<span class="status-dot" aria-hidden="true"></span>
@@ -34,25 +36,7 @@
 				</div>
 			</header>
 
-			<section class="intro" aria-labelledby="page-title">
-				<div>
-					<p class="eyebrow accent-label">BODENPLATTEN-SIMULATOR</p>
-					<h2 id="page-title">
-						Ein neuer Quadrant
-						<br />
-						<em>wartet auf dich.</em>
-					</h2>
-				</div>
-				<div class="intro-side">
-					<p class="intro-copy">Ziehe Ressourcen und Gegner für dein nächstes Spielfeld. Jede Platzierung bleibt fair, zufällig und frei von Doppelbelegungen.</p>
-					<div class="intro-stats">
-						<div class="intro-stat"><strong id="intro-grid-stat">7 × 7</strong><span>Raster</span></div>
-						<div class="intro-stat"><strong id="intro-object-stat">4–8</strong><span>Objekte / Wurf</span></div>
-						<div class="intro-stat is-danger"><strong id="intro-enemy-stat">2</strong><span>Gegner max.</span></div>
-					</div>
-				</div>
-			</section>
-
+			<main class="app-main">
 			<section id="scan-view" class="scan-view" aria-labelledby="scan-title" hidden>
 				<div class="settings-heading">
 					<div>
@@ -168,50 +152,57 @@
 			</section>
 
 			<section class="workspace" aria-label="Spielfeld und Ziehungsdetails">
-				<div class="board-panel">
-					<div class="panel-heading">
-						<div>
-							<p class="section-kicker">AKTUELLER WURF</p>
-							<h3>
-								Quadrant
-								<span id="roll-number">#001</span>
-							</h3>
+				<aside class="info-panel" aria-label="Wurf-Informationen">
+					<div class="roll-status">
+						<div class="roll-heading">
+							<span class="status-dot" aria-hidden="true"></span>
+							<div>
+								<p class="section-kicker">AKTUELLER WURF</p>
+								<h2 class="panel-title">Quadrant <span id="roll-number">#001</span></h2>
+							</div>
 						</div>
-						<div class="object-count" aria-live="polite">
-							<strong id="object-count">00</strong>
-							<span>Objekte</span>
+						<div class="status-chips">
+							<div class="object-count" aria-live="polite">
+								<strong id="object-count">00</strong>
+								<span>Objekte</span>
+							</div>
+							<div class="enemy-meter">
+								<div class="enemy-meter-label"><span>Gegner</span><strong id="enemy-meter-value">0 / 2</strong></div>
+								<div id="enemy-meter-bar" class="enemy-meter-bar" aria-hidden="true"></div>
+							</div>
 						</div>
 					</div>
-					<div class="board-wrap">
-						<div id="board" class="board" aria-label="7 mal 7 Spielfeld"></div>
+					<div class="config-list">
+						<p class="section-kicker">KONFIGURATION</p>
+						<dl>
+							<div class="config-row"><dt>Raster</dt><dd id="intro-grid-stat">7 × 7</dd></div>
+							<div class="config-row"><dt>Objekte / Wurf</dt><dd id="intro-object-stat">4–8</dd></div>
+							<div class="config-row is-danger"><dt>Gegner max.</dt><dd id="intro-enemy-stat">2</dd></div>
+						</dl>
 					</div>
 					<div class="board-footer">
-						<span>
-							<i class="legend-swatch resource-swatch"></i>
-							Ressourcen
-						</span>
-						<span>
-							<i class="legend-swatch enemy-swatch">!</i>
-							Gegner
-						</span>
-						<span class="empty-legend">
-							<i class="legend-swatch empty-swatch"></i>
-							Frei
-						</span>
-						<span>
-							<i class="legend-swatch blocked-swatch"></i>
-							Gesperrt
-						</span>
+						<p class="section-kicker">LEGENDE</p>
+						<span><i class="legend-swatch resource-swatch"></i>Ressource</span>
+						<span><i class="legend-swatch enemy-swatch">!</i>Gegner</span>
+						<span class="empty-legend"><i class="legend-swatch empty-swatch"></i>Frei</span>
+						<span><i class="legend-swatch blocked-swatch"></i>Gesperrt</span>
 					</div>
-				</div>
+				</aside>
+
+				<section class="board-panel" aria-label="7 mal 7 Spielfeld">
+					<div class="board-wrap">
+						<div id="board" class="board"></div>
+					</div>
+				</section>
 
 				<aside class="details-panel" aria-labelledby="details-title">
 					<div class="panel-heading compact-heading">
 						<div>
 							<p class="section-kicker">DEINE ZIEHUNG</p>
-							<h3 id="details-title">Fundstücke</h3>
+							<h2 id="details-title" class="panel-title">Fundstücke</h2>
 						</div>
 						<span id="enemy-limit" class="limit-chip">0 / 2 Gegner</span>
+						<span class="rules-short">max. 2 Gegner · 1 Feld pro Objekt</span>
 					</div>
 					<div id="results-list" class="results-list" aria-live="polite"></div>
 					<div class="rules-note">
@@ -225,16 +216,19 @@
 					</button>
 				</aside>
 			</section>
+			</main>
 
 			<footer class="app-footer">
 				<span>7 × 7 SPIELFELD</span>
 				<span class="footer-line" aria-hidden="true"></span>
-				<span>RANDOMIZED TERRAIN SYSTEM</span>
+				<span class="footer-system">RANDOMIZED TERRAIN SYSTEM</span>
 				<span id="app-version" class="app-version"></span>
-				<a class="changelog-link" href="changelog.html">Changelog</a>
-				<a class="changelog-link" href="roadmap.html">Roadmap</a>
+				<span class="footer-links">
+					<a class="changelog-link" href="changelog.html">Changelog</a>
+					<a class="changelog-link" href="roadmap.html">Roadmap</a>
+				</span>
 			</footer>
-		</main>
+		</div>
 		<script src="app.js"></script>
 	</body>
 </html>

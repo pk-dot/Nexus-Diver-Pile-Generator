@@ -75,4 +75,4 @@ tests/           Automatisierte Tests (node --test)
 build-dist.sh    Erstellt dist/ für den Server
 ```
 
-Aktuelle Version: **1.2.0**
+Aktuelle Version: **1.3.0**

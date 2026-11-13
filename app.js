@@ -1,4 +1,4 @@
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.3.0';
 const CONFIG_STORAGE_KEY = 'pile-generator-config';
 const BOARD_MASK_STORAGE_KEY = 'pile-generator-board-mask';
 const ENEMY_RESOURCE_COUNT = 2;
@@ -34,6 +34,8 @@ const boardElement = document.querySelector('#board');
 const resultsElement = document.querySelector('#results-list');
 const objectCountElement = document.querySelector('#object-count');
 const enemyLimitElement = document.querySelector('#enemy-limit');
+const enemyMeterValue = document.querySelector('#enemy-meter-value');
+const enemyMeterBar = document.querySelector('#enemy-meter-bar');
 const rollNumberElement = document.querySelector('#roll-number');
 const rerollButton = document.querySelector('#reroll-button');
 const scanButton = document.querySelector('#scan-button');
@@ -43,7 +45,6 @@ const closeScanButton = document.querySelector('#close-scan-button');
 const settingsView = document.querySelector('#settings-view');
 const scanView = document.querySelector('#scan-view');
 const workspaceElement = document.querySelector('.workspace');
-const introElement = document.querySelector('.intro');
 const configEditor = document.querySelector('#config-editor');
 const configMessage = document.querySelector('#config-message');
 const applyConfigButton = document.querySelector('#apply-config-button');
@@ -135,7 +136,6 @@ function setSettingsOpen(isOpen) {
 	settingsView.hidden = !isOpen;
 	scanView.hidden = true;
 	workspaceElement.hidden = isOpen;
-	introElement.hidden = isOpen;
 	settingsButton.setAttribute('aria-expanded', String(isOpen));
 	settingsButton.classList.toggle('active', isOpen);
 	if (isOpen) {
@@ -149,7 +149,6 @@ function setScanOpen(isOpen) {
 	scanView.hidden = !isOpen;
 	settingsView.hidden = true;
 	workspaceElement.hidden = isOpen;
-	introElement.hidden = isOpen;
 	scanButton.setAttribute('aria-expanded', String(isOpen));
 	if (isOpen) scanStatusElement.textContent = 'Ohne Foto Felder direkt antippen oder ein Spielfeldfoto laden.';
 }
@@ -522,6 +521,14 @@ function generateAndRender() {
 	rollNumberElement.textContent = `#${String(rollNumber).padStart(3, '0')}`;
 	objectCountElement.textContent = String(objects.length).padStart(2, '0');
 	enemyLimitElement.textContent = `${enemyCount} / ${config.generation.maxEnemies} Gegner`;
+	enemyMeterValue.textContent = `${enemyCount} / ${config.generation.maxEnemies}`;
+	enemyMeterBar.replaceChildren(
+		...Array.from({ length: config.generation.maxEnemies }, (_, index) => {
+			const segment = document.createElement('span');
+			if (index < enemyCount) segment.className = 'is-filled';
+			return segment;
+		}),
+	);
 	renderBoard(objects);
 	renderResults(objects);
 }

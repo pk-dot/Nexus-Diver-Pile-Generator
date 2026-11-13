@@ -1,59 +1,56 @@
 /* ==========================================================================
-   Pile Generator – Design „Deep Orbit HUD“
+   Pile Generator – Design „Deep Orbit HUD“ · App-Layout (Desktop + Mobile)
    Hauptansicht nach Vorlage „Pile Generator Design/mockup/styles.css“,
-   darunter Settings, Scan, Changelog/Roadmap und Responsive.
+   darunter Settings, Scan, Changelog/Roadmap.
+   Breakpoints:
+     ≥ 1180 px  Desktop-App: 3 Spalten, alles in 100dvh, keine Seiten-Scrollbar
+     < 1180 px  Kompakt (Tablet/Mobile): gestapelt, max. 640 px breit
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Chakra+Petch:wght@400;500;600&family=Share+Tech+Mono&display=swap');
 
 :root {
-	/* Flächen */
 	--bg: #060a14;
 	--panel: rgba(11, 20, 38, 0.92);
 	--panel-solid: #0b1426;
 	--cell: rgba(8, 16, 32, 0.55);
-
-	/* Linien */
+	--cell-res: rgba(13, 30, 52, 0.92);
+	--cell-enemy: rgba(46, 14, 30, 0.95);
 	--line: #1f3a5c;
 	--line-strong: #2f5f8c;
 	--line-soft: #16304d;
-
-	/* Akzente */
 	--cyan: #5ce1ff;
 	--amber: #ffb547;
 	--danger: #ff5468;
 	--danger-soft: #ff8a99;
 	--ok: #5dff9e;
-
-	/* Text (alle Werte ≥ 4.5:1 auf --panel-solid) */
 	--text: #e6f1ff;
 	--text-2: #b4c6e0;
 	--muted: #8ba3c4;
-	--dim: #5f7ba0; /* nur für dekorative Nummern */
+	--dim: #5f7ba0;
 
-	/* Typo */
 	--font-display: 'Orbitron', 'Chakra Petch', sans-serif;
 	--font-body: 'Chakra Petch', system-ui, sans-serif;
 	--font-mono: 'Share Tech Mono', ui-monospace, monospace;
 
-	/* Form */
 	--radius-cell: 4px;
 	--radius-ui: 3px;
-	--bracket-size: 22px;
 	--hex: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
 	--chamfer: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+
+	/* Raster-Maße (Desktop) */
+	--axis-size: 26px;
+	--board-gap: 6px;
 }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-
+html, body { margin: 0; }
 body {
 	min-width: 320px;
-	margin: 0;
 	color: var(--text);
 	font-family: var(--font-body);
 	background-color: var(--bg);
-	/* Sternenfeld: 1 Schimmer oben + 5 Sternlagen, gekachelt */
 	background-image:
 		radial-gradient(ellipse at 50% -10%, rgba(92, 225, 255, 0.1), transparent 60%),
 		radial-gradient(1px 1px at 30px 40px, #fff 50%, transparent 52%),
@@ -64,13 +61,12 @@ body {
 	background-size: 100% 100%, 300px 300px, 300px 300px, 300px 300px, 300px 300px, 300px 300px;
 	background-attachment: fixed;
 }
-
 button { font: inherit; }
 a { color: var(--cyan); }
 a:hover { color: #b5f1ff; }
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* Icon-Masken ------------------------------------------------------------ */
 .icon-mask {
 	display: inline-block;
 	flex-shrink: 0;
@@ -79,71 +75,67 @@ a:hover { color: #b5f1ff; }
 	mask: var(--icon) center / contain no-repeat;
 }
 
-/* Layout ----------------------------------------------------------------- */
+/* ==========================================================================
+   App-Rahmen: Kopfleiste / Inhalt / Statusleiste
+   ========================================================================== */
 .app-shell {
-	width: min(1240px, calc(100% - 64px));
-	margin: 0 auto;
-	padding: 28px 0;
-	display: flex;
-	flex-direction: column;
-	gap: 30px;
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr) auto;
+	min-height: 100dvh;
 }
 
-/* Header ----------------------------------------------------------------- */
+/* Kopfleiste ------------------------------------------------------------- */
 .app-header {
 	display: flex;
-	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 	gap: 20px;
-	padding-bottom: 20px;
+	height: 68px;
+	padding: 0 24px;
 	border-bottom: 1px solid var(--line);
+	background: rgba(6, 10, 20, 0.8);
 }
-.brand-lockup { display: flex; align-items: center; gap: 14px; }
+.brand-lockup { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .brand-mark {
 	display: grid;
 	place-items: center;
-	width: 46px;
-	height: 52px;
+	flex-shrink: 0;
+	width: 38px;
+	height: 43px;
 	clip-path: var(--hex);
 	background: var(--cyan);
 	font-family: var(--font-display);
 	font-weight: 800;
-	font-size: 13px;
+	font-size: 11px;
 	color: var(--cyan);
 }
-/* Innen-Hexagon (Kontur-Effekt) */
-.brand-mark span {
-	display: grid;
-	place-items: center;
-	width: 40px;
-	height: 46px;
-	clip-path: var(--hex);
-	background: var(--panel-solid);
-}
-.eyebrow {
-	margin: 0;
-	font-family: var(--font-mono);
-	font-size: 12px;
-	letter-spacing: 0.24em;
-	color: var(--amber);
-}
-.app-header h1 {
-	margin: 0;
-	font-family: var(--font-display);
-	font-weight: 700;
-	font-size: 22px;
-	letter-spacing: 0.1em;
-	text-transform: uppercase;
-}
-.header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.scan-button,
-.settings-button {
+.brand-mark span { display: grid; place-items: center; width: 33px; height: 38px; clip-path: var(--hex); background: var(--panel-solid); }
+.eyebrow { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.24em; color: var(--amber); }
+.app-header h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+/* NEU: Untertitel in der Kopfleiste (ersetzt die Intro-Sektion) */
+.header-tagline {
 	display: flex;
 	align-items: center;
+	gap: 18px;
+	margin: 0 auto 0 6px;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	letter-spacing: 0.22em;
+	color: var(--muted);
+	white-space: nowrap;
+}
+.header-tagline::before { content: ''; width: 1px; height: 30px; background: var(--line); }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.scan-button,
+.settings-button {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	gap: 10px;
+	min-width: 44px;
 	min-height: 44px;
-	padding: 0 18px;
+	padding: 0 16px;
 	border: 1px solid var(--line-strong);
 	border-radius: var(--radius-ui);
 	background: var(--panel-solid);
@@ -154,11 +146,10 @@ a:hover { color: #b5f1ff; }
 	cursor: pointer;
 	transition: border-color 0.15s, background-color 0.15s;
 }
-.scan-button:hover,
-.settings-button:hover,
-.settings-button.active { border-color: var(--cyan); background: rgba(92, 225, 255, 0.08); }
-.scan-icon,
-.settings-icon { width: 16px; height: 16px; color: var(--cyan); }
+.scan-button:hover, .settings-button:hover, .settings-button.active, .scan-button[aria-expanded='true'] { border-color: var(--cyan); background: rgba(92, 225, 255, 0.08); }
+.scan-icon, .settings-icon { width: 16px; height: 16px; color: var(--cyan); }
+/* NEU: Beta-Badge, nur in der Kompaktansicht sichtbar */
+.beta-badge { display: none; }
 .header-meta {
 	display: flex;
 	align-items: center;
@@ -171,63 +162,54 @@ a:hover { color: #b5f1ff; }
 	font-size: 13px;
 	color: #9df5c0;
 }
-.status-dot {
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: var(--ok);
-	box-shadow: 0 0 8px var(--ok);
-}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); flex-shrink: 0; }
 
-/* Intro ------------------------------------------------------------------ */
-.intro {
+/* Statusleiste (Footer) -------------------------------------------------- */
+.app-footer {
 	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-end;
-	justify-content: space-between;
-	gap: 32px;
-}
-.intro > div:first-child { flex: 999 1 540px; }
-.accent-label {
-	margin: 0 0 14px;
+	align-items: center;
+	gap: 16px;
+	height: 40px;
+	padding: 0 24px;
+	border-top: 1px solid var(--line);
+	background: rgba(6, 10, 20, 0.8);
 	font-family: var(--font-mono);
-	font-size: 13px;
-	letter-spacing: 0.24em;
-	color: var(--amber);
+	font-size: 12px;
+	letter-spacing: 0.16em;
+	color: var(--muted);
 }
-.accent-label::before { content: '// '; }
-.intro h2 {
-	margin: 0;
-	font-family: var(--font-display);
-	font-weight: 800;
-	font-size: clamp(28px, 4.2vw, 46px);
-	line-height: 1.12;
-	letter-spacing: 0.02em;
-	text-transform: uppercase;
-}
-.intro h2 em { font-style: normal; color: var(--cyan); }
-.intro-side { flex: 1 1 340px; max-width: 420px; display: flex; flex-direction: column; gap: 16px; }
-.intro-copy { margin: 0; font-size: 17px; line-height: 1.55; color: var(--text-2); }
-.intro-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.intro-stat { padding: 10px 12px; border: 1px solid var(--line); background: var(--panel-solid); }
-.intro-stat strong { display: block; font-family: var(--font-display); font-weight: 700; font-size: 18px; }
-.intro-stat span { font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-transform: uppercase; }
-.intro-stat.is-danger strong { color: var(--danger-soft); }
+.footer-line { flex: 1 1 60px; height: 1px; background: repeating-linear-gradient(90deg, var(--line-strong) 0 6px, transparent 6px 12px); }
+.app-version { color: var(--amber); }
+.changelog-link { padding: 6px 0; }
+.footer-links { display: flex; gap: 16px; }
 
-/* Panels mit Eckwinkeln ---------------------------------------------------- */
-.workspace { display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch; }
+/* NEU: Inhaltsbereich zwischen Kopf- und Statusleiste */
+.app-main { display: flex; flex-direction: column; min-height: 0; }
+.app-main > .workspace { flex: 1 1 auto; }
+.app-main > .settings-view,
+.app-main > .scan-view { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 20px 24px; }
+
+/* ==========================================================================
+   Workspace: 3 Spalten
+   ========================================================================== */
+.workspace {
+	display: grid;
+	grid-template-columns: 250px minmax(0, 1fr) 370px;
+	gap: 20px;
+	min-height: 0;
+	padding: 20px 24px;
+}
+
+/* Panels mit Eckwinkeln -------------------------------------------------- */
+.info-panel,
 .board-panel,
-.details-panel,
-.settings-view,
-.scan-view {
+.details-panel {
 	--bracket: var(--cyan);
+	--bracket-size: 20px;
 	position: relative;
 	min-width: 0;
-	padding: 26px;
+	min-height: 0;
 	border: 1px solid var(--line);
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
 	background:
 		linear-gradient(var(--bracket), var(--bracket)) top left / var(--bracket-size) 2px no-repeat border-box,
 		linear-gradient(var(--bracket), var(--bracket)) top left / 2px var(--bracket-size) no-repeat border-box,
@@ -239,40 +221,80 @@ a:hover { color: #b5f1ff; }
 		linear-gradient(var(--bracket), var(--bracket)) bottom right / 2px var(--bracket-size) no-repeat border-box,
 		var(--panel);
 }
-.board-panel { flex: 999 1 600px; }
-.details-panel { --bracket: var(--amber); flex: 1 1 360px; gap: 18px; }
+.details-panel { --bracket: var(--amber); }
 
-.panel-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
-.section-kicker {
-	margin: 0 0 6px;
-	font-family: var(--font-mono);
-	font-size: 12px;
-	letter-spacing: 0.22em;
-	color: var(--muted);
-}
-.panel-heading h3 {
-	margin: 0;
-	font-family: var(--font-display);
-	font-weight: 700;
-	font-size: 24px;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
-}
+.section-kicker { margin: 0 0 6px; font-family: var(--font-mono); font-weight: 400; font-size: 12px; letter-spacing: 0.22em; color: var(--muted); }
+.panel-title { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 21px; letter-spacing: 0.06em; text-transform: uppercase; }
 #roll-number { color: var(--amber); }
-.object-count { text-align: right; }
-.object-count strong {
-	display: block;
-	font-family: var(--font-display);
-	font-weight: 800;
-	font-size: 34px;
-	line-height: 1;
-	color: var(--amber);
-}
-.object-count span { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; }
 
-/* Board + Radar ---------------------------------------------------------- */
-.board-wrap { position: relative; isolation: isolate; }
-/* Ringe + Fadenkreuz, über dem Zellenbereich (ohne Achsen) zentriert */
+/* NEU: Info-Panel (links) ------------------------------------------------- */
+.info-panel { display: flex; flex-direction: column; gap: 22px; padding: 22px; }
+.roll-status { display: flex; flex-direction: column; gap: 22px; }
+.roll-heading { display: flex; align-items: center; gap: 8px; }
+.roll-heading .status-dot { display: none; }
+.status-chips { display: flex; flex-direction: column; gap: 22px; }
+.object-count { display: flex; align-items: flex-end; gap: 12px; }
+.object-count strong { font-family: var(--font-display); font-weight: 800; font-size: 58px; line-height: 0.9; color: var(--amber); }
+.object-count span { padding-bottom: 4px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; }
+.enemy-meter { display: flex; flex-direction: column; gap: 8px; }
+.enemy-meter-label { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; }
+.enemy-meter-label strong { font-weight: 400; color: #ff9eaa; }
+.enemy-meter-bar { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; }
+.enemy-meter-bar span { height: 6px; background: var(--line-soft); }
+.enemy-meter-bar span.is-filled { background: var(--danger); box-shadow: 0 0 8px rgba(255, 84, 104, 0.6); }
+
+.config-list { margin: 0; border-top: 1px solid var(--line); }
+.config-list .section-kicker { margin: 14px 0 6px; }
+.config-list dl { margin: 0; } /* Kicker steht außerhalb der <dl>, damit das Markup gültig bleibt */
+.config-row { display: flex; align-items: baseline; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+.config-row dt { font-size: 14px; color: var(--text-2); }
+.config-row dd { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 15px; }
+.config-row.is-danger dd { color: var(--danger-soft); }
+
+/* Legende: in 1.2.0 unter dem Board, jetzt unten im Info-Panel */
+.board-footer {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: auto;
+	font-family: var(--font-mono);
+	font-size: 13px;
+	color: var(--text-2);
+}
+.board-footer > span { display: flex; align-items: center; gap: 10px; }
+.legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 2px; font-size: 0; flex-shrink: 0; }
+.resource-swatch { border-radius: 50%; background: radial-gradient(circle at 32% 28%, #b5e2ff, #3498db 48%, #134a78); box-shadow: 0 0 6px #3498db; }
+.enemy-swatch { border: 1px solid var(--danger); background: rgba(255, 84, 104, 0.2); }
+.empty-swatch { border: 1px solid rgba(92, 225, 255, 0.35); }
+.blocked-swatch { border: 1px solid rgba(255, 181, 71, 0.6); background: repeating-linear-gradient(135deg, rgba(255, 181, 71, 0.35) 0 2px, transparent 2px 5px); }
+
+/* Board-Panel (Mitte) ---------------------------------------------------- */
+.board-panel {
+	--bracket-size: 22px;
+	display: flex;
+	padding: 20px;
+	/* NEU: das Board richtet sich nach der kleineren Seite des Panels */
+	container-type: size;
+	align-items: center;
+	justify-content: center;
+}
+.board-wrap {
+	position: relative;
+	isolation: isolate;
+	width: min(100cqw, 100cqh);
+	height: min(100cqw, 100cqh);
+}
+.board {
+	display: grid;
+	grid-template-columns: var(--axis-size) repeat(var(--grid-columns, 7), minmax(0, 1fr));
+	grid-template-rows: var(--axis-size) repeat(var(--grid-rows, 7), minmax(0, 1fr));
+	gap: var(--board-gap);
+	width: 100%;
+	height: 100%;
+}
+.axis-label { align-self: center; text-align: center; font-family: var(--font-mono); font-size: 14px; color: var(--cyan); }
+
+/* Radar: Ringe + Fadenkreuz + Scan-Kegel, zentriert auf den Zellbereich */
 .board-wrap::before,
 .board-wrap::after {
 	content: '';
@@ -287,51 +309,37 @@ a:hover { color: #b5f1ff; }
 		linear-gradient(rgba(92, 225, 255, 0.12), rgba(92, 225, 255, 0.12)) center / 1px 100% no-repeat,
 		radial-gradient(circle closest-side, transparent calc(36% - 1px), rgba(92, 225, 255, 0.16) 36%, transparent calc(36% + 1px), transparent calc(66% - 1px), rgba(92, 225, 255, 0.14) 66%, transparent calc(66% + 1px), transparent calc(96% - 1px), rgba(92, 225, 255, 0.12) 96%, transparent calc(96% + 1px));
 }
-/* Scan-Kegel – gedreht wird der Gradient-Winkel, nicht das Element.
-   Ein rotierendes Element würde mit seinen Ecken über den Rand ragen
-   und horizontales Scrollen auslösen. */
+/* Gedreht wird der Gradient-Winkel (kein Überstand, kein Scrollen).
+   Drehung im Uhrzeigersinn: helle, scharfe VORDERKANTE, der Schweif blendet
+   NACH HINTEN (gegen die Drehrichtung) aus. */
 @property --radar-angle {
 	syntax: '<angle>';
 	inherits: false;
-	initial-value: 20deg;
+	initial-value: 0deg;
 }
 .board-wrap::after {
-	/* Dreht im Uhrzeigersinn: helle Vorderkante bei 70deg, Schweif blendet nach hinten aus */
-	background: conic-gradient(from var(--radar-angle), transparent 0deg, rgba(92, 225, 255, 0.18) 70deg, transparent 70deg 360deg);
+	background: conic-gradient(from var(--radar-angle), transparent 0deg, rgba(92, 225, 255, 0.16) 72deg, rgba(92, 225, 255, 0.42) 80deg, transparent 80deg 360deg);
 	-webkit-mask: radial-gradient(circle closest-side, #000 96%, transparent 96.5%);
 	mask: radial-gradient(circle closest-side, #000 96%, transparent 96.5%);
 	animation: radar-sweep 8s linear infinite;
 }
-@keyframes radar-sweep { to { --radar-angle: 380deg; } }
-@media (prefers-reduced-motion: reduce) { .board-wrap::after { animation: none; } }
+@keyframes radar-sweep { to { --radar-angle: 360deg; } }
+@media (prefers-reduced-motion: reduce) { .board-wrap::after { animation: none; --radar-angle: 300deg; } }
 
-.board {
-	--axis-size: 28px;
-	--board-gap: 6px;
-	display: grid;
-	grid-template-columns: var(--axis-size) repeat(var(--grid-columns, 7), minmax(0, 1fr));
-	gap: var(--board-gap);
-	align-items: center;
-}
-/* Die Radar-Pseudo-Elemente lesen die Variablen vom .board-wrap */
-.board-wrap { --axis-size: 28px; --board-gap: 6px; }
-
-.axis-label { text-align: center; font-family: var(--font-mono); font-size: 14px; color: var(--cyan); }
-
+/* Zellen (füllen ihre Grid-Zelle, kein aspect-ratio mehr nötig) */
 .cell {
 	position: relative;
 	display: grid;
 	place-items: center;
-	aspect-ratio: 1 / 1;
+	min-width: 0;
+	min-height: 0;
 	border: 1px solid rgba(92, 225, 255, 0.14);
 	border-radius: var(--radius-cell);
 	background: var(--cell);
 	animation: cell-in 0.35s ease-out both;
 }
 @keyframes cell-in { from { opacity: 0; transform: scale(0.92); } }
-@media (prefers-reduced-motion: reduce) { .cell { animation: none; } }
-
-/* Freies Feld: kleines Fadenkreuz */
+@media (prefers-reduced-motion: reduce) { .cell, .result-item { animation: none; } }
 .cell:not(.occupied):not(.blocked)::after {
 	content: '';
 	width: 10px;
@@ -340,126 +348,59 @@ a:hover { color: #b5f1ff; }
 		linear-gradient(rgba(139, 163, 196, 0.45), rgba(139, 163, 196, 0.45)) center / 100% 1px no-repeat,
 		linear-gradient(rgba(139, 163, 196, 0.45), rgba(139, 163, 196, 0.45)) center / 1px 100% no-repeat;
 }
-/* Koordinate oben links in belegten Feldern (data-label per JS) */
 .cell.occupied::before {
 	content: attr(data-label);
 	position: absolute;
 	top: 4px;
 	left: 6px;
 	font-family: var(--font-mono);
-	font-size: 10px;
+	font-size: 11px;
 	line-height: 1;
 	color: var(--muted);
 }
+.cell.blocked { border-color: rgba(255, 181, 71, 0.55); background: repeating-linear-gradient(135deg, rgba(255, 181, 71, 0.2) 0 4px, rgba(6, 10, 20, 0.85) 4px 10px); }
+.cell.occupied.resource { border-color: rgba(92, 225, 255, 0.4); background: var(--cell-res); }
+.cell.occupied.resource::after { content: ''; position: absolute; width: 72%; height: 72%; border: 1px solid rgba(230, 241, 255, 0.2); border-radius: 50%; }
 
-/* Gesperrt */
-.cell.blocked {
-	border-color: rgba(255, 181, 71, 0.55);
-	background: repeating-linear-gradient(135deg, rgba(255, 181, 71, 0.2) 0 4px, rgba(6, 10, 20, 0.8) 4px 10px);
-}
-
-/* Ressource: Planet mit Orbit */
-.cell.occupied.resource {
-	border-color: rgba(92, 225, 255, 0.4);
-	background: rgba(92, 225, 255, 0.06);
-}
-.cell.occupied.resource::after {
-	content: '';
-	position: absolute;
-	width: 72%;
-	height: 72%;
-	border: 1px solid rgba(230, 241, 255, 0.2);
-	border-radius: 50%;
-}
-/* Planet-Kugel – Farbe kommt aus der Config über --resource-color */
 .cell-marker,
 .enemy-resource-dot,
 .result-resource-dot,
-.result-icon:not(.enemy-result-icon) > .planet {
+.result-icon > .planet {
 	border-radius: 50%;
 	background: radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--resource-color) 35%, #fff) 0%, var(--resource-color) 48%, color-mix(in srgb, var(--resource-color) 45%, #000) 100%);
 	box-shadow: 0 0 var(--glow, 14px) color-mix(in srgb, var(--resource-color) 65%, transparent);
 }
 .cell-marker { width: 38%; height: 38%; }
 
-/* Gegner */
-.cell.occupied.enemy {
-	border-color: var(--danger);
-	background: rgba(255, 84, 104, 0.13);
-	box-shadow: 0 0 18px rgba(255, 84, 104, 0.35), inset 0 0 14px rgba(255, 84, 104, 0.2);
-}
+.cell.occupied.enemy { border-color: var(--danger); background: var(--cell-enemy); box-shadow: 0 0 18px rgba(255, 84, 104, 0.35), inset 0 0 14px rgba(255, 84, 104, 0.2); }
 .cell.occupied.enemy::before { color: #ffb3bd; }
-.cell.occupied.enemy::after {
-	content: '';
-	position: absolute;
-	width: 70%;
-	height: 70%;
-	border: 1px dashed rgba(255, 138, 153, 0.55);
-	border-radius: 50%;
-}
+.cell.occupied.enemy::after { content: ''; position: absolute; width: 70%; height: 70%; border: 1px dashed rgba(255, 138, 153, 0.55); border-radius: 50%; }
 .enemy-marker { width: 38%; height: 38%; color: var(--danger-soft); }
-.enemy-resource-dot { --glow: 6px; position: absolute; width: 11px; height: 11px; }
-.enemy-resource-dot-1 { top: 12%; right: 12%; }
-.enemy-resource-dot-2 { bottom: 12%; right: 24%; }
+/* GEÄNDERT: Beute wie im Original links unten / rechts unten */
+.enemy-resource-dot { --glow: 6px; position: absolute; width: 13px; height: 13px; }
+.enemy-resource-dot-1 { bottom: 8%; left: 8%; }
+.enemy-resource-dot-2 { bottom: 8%; right: 8%; }
 
-/* Legende ---------------------------------------------------------------- */
-.board-footer {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 22px;
-	padding-top: 14px;
-	border-top: 1px solid var(--line);
-	font-family: var(--font-mono);
-	font-size: 13px;
-	color: var(--text-2);
-}
-.board-footer span { display: flex; align-items: center; gap: 8px; }
-.legend-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; font-size: 0; }
-.resource-swatch { --resource-color: #3498db; border-radius: 50%; background: radial-gradient(circle at 32% 28%, #b5e2ff, #3498db 48%, #134a78); box-shadow: 0 0 6px #3498db; }
-.enemy-swatch { border: 1px solid var(--danger); background: rgba(255, 84, 104, 0.2); }
-.empty-swatch { border: 1px solid rgba(92, 225, 255, 0.35); }
-.blocked-swatch { border: 1px solid rgba(255, 181, 71, 0.6); background: repeating-linear-gradient(135deg, rgba(255, 181, 71, 0.35) 0 2px, transparent 2px 5px); }
-
-/* Fundstücke ------------------------------------------------------------- */
-.limit-chip {
-	padding: 6px 10px;
-	border: 1px solid var(--danger);
-	background: rgba(255, 84, 104, 0.1);
-	font-family: var(--font-mono);
-	font-size: 13px;
-	color: #ff9eaa;
-	text-transform: uppercase;
-	white-space: nowrap;
-}
-.results-list { display: flex; flex-direction: column; counter-reset: result; }
+/* Details-Panel (rechts) ------------------------------------------------- */
+.details-panel { --bracket-size: 22px; display: flex; flex-direction: column; gap: 16px; padding: 22px; }
+.panel-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.limit-chip { padding: 6px 10px; border: 1px solid var(--danger); background: rgba(255, 84, 104, 0.1); font-family: var(--font-mono); font-size: 13px; color: #ff9eaa; text-transform: uppercase; white-space: nowrap; }
+/* NEU: Kurzregel, nur kompakt sichtbar */
+.rules-short { display: none; }
+.results-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; counter-reset: result; }
 .result-item {
 	counter-increment: result;
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding: 11px 10px;
+	padding: 10px;
 	border-bottom: 1px solid var(--line-soft);
 	animation: cell-in 0.3s ease-out both;
 }
-.result-item::before {
-	content: counter(result, decimal-leading-zero);
-	width: 22px;
-	flex-shrink: 0;
-	font-family: var(--font-mono);
-	font-size: 12px;
-	color: var(--dim);
-}
+.result-item::before { content: counter(result, decimal-leading-zero); width: 22px; flex-shrink: 0; font-family: var(--font-mono); font-size: 12px; color: var(--dim); }
 .result-item.is-enemy { background: rgba(255, 84, 104, 0.09); }
 .result-main { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; min-width: 0; }
-.result-icon {
-	display: grid;
-	place-items: center;
-	width: 34px;
-	height: 34px;
-	flex-shrink: 0;
-	border: 1px solid rgba(230, 241, 255, 0.18);
-	border-radius: 50%;
-}
+.result-icon { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border: 1px solid rgba(230, 241, 255, 0.18); border-radius: 50%; }
 .result-icon > .planet { --glow: 10px; width: 20px; height: 20px; }
 .enemy-result-icon { border: 0; border-radius: 0; clip-path: var(--hex); background: var(--danger); }
 .result-enemy-marker { width: 17px; height: 17px; color: #1a0610; }
@@ -473,24 +414,12 @@ a:hover { color: #b5f1ff; }
 .result-coordinate { flex-shrink: 0; font-family: var(--font-mono); font-size: 18px; color: var(--amber); }
 .empty-results { margin: 0; padding: 16px 10px; font-family: var(--font-mono); color: var(--muted); }
 
-.rules-note { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px dashed var(--line-strong); }
-.rules-note p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--text-2); }
-.note-icon {
-	display: grid;
-	place-items: center;
-	width: 24px;
-	height: 27px;
-	flex-shrink: 0;
-	clip-path: var(--hex);
-	background: var(--cyan);
-	font-family: var(--font-display);
-	font-weight: 800;
-	font-size: 12px;
-	color: var(--bg);
-}
+.rules-note { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px dashed var(--line-strong); }
+.rules-note p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--text-2); }
+.note-icon { display: grid; place-items: center; width: 24px; height: 27px; flex-shrink: 0; clip-path: var(--hex); background: var(--cyan); font-family: var(--font-display); font-weight: 800; font-size: 12px; color: var(--bg); }
 
 .reroll-button {
-	margin-top: auto;
+	flex: 0 0 auto;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -511,31 +440,107 @@ a:hover { color: #b5f1ff; }
 }
 .reroll-button:hover { background: #ffc66e; }
 .reroll-button:active { transform: translateY(1px); }
-.button-icon,
-.button-arrow { font-size: 22px; line-height: 1; }
+.button-icon, .button-arrow { font-size: 22px; line-height: 1; }
 
-/* Footer ----------------------------------------------------------------- */
-.app-footer {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 16px;
-	padding-top: 18px;
-	border-top: 1px solid var(--line);
-	font-family: var(--font-mono);
-	font-size: 12px;
-	letter-spacing: 0.16em;
-	color: var(--muted);
+/* ==========================================================================
+   Desktop-App ≥ 1180 px: exakt Viewporthöhe
+   ========================================================================== */
+@media (min-width: 1180px) and (min-height: 700px) {
+	.app-shell { height: 100dvh; overflow: hidden; }
 }
-.footer-line { flex: 1 1 60px; height: 1px; background: repeating-linear-gradient(90deg, var(--line-strong) 0 6px, transparent 6px 12px); }
-.app-version { color: var(--amber); }
 
+/* ==========================================================================
+   Kompakt < 1180 px (Tablet & Mobile) – Artboard „Deep Orbit HUD · Mobile“
+   ========================================================================== */
+@media (max-width: 1179px) {
+	:root { --axis-size: 16px; --board-gap: 4px; }
 
-.changelog-link {
-	color: var(--cyan);
-	text-decoration: none;
+	.app-header { height: 60px; padding: 0 12px 0 14px; gap: 10px; }
+	.brand-lockup { gap: 10px; }
+	.brand-mark { width: 32px; height: 36px; font-size: 9px; }
+	.brand-mark span { width: 27px; height: 31px; }
+	.eyebrow { font-size: 10px; letter-spacing: 0.22em; }
+	.app-header h1 { font-size: 15px; letter-spacing: 0.08em; }
+	.header-tagline, .header-meta { display: none; }
+	.header-actions { gap: 8px; }
+	.scan-button, .settings-button { width: 44px; padding: 0; }
+	.scan-icon, .settings-icon { width: 18px; height: 18px; }
+	.btn-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+	.beta-badge { display: block; position: absolute; top: -6px; right: -6px; padding: 1px 4px; background: var(--amber); color: #1a1000; font-family: var(--font-mono); font-size: 9px; line-height: 12px; }
+
+	.workspace {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		width: 100%;
+		max-width: 640px;
+		margin: 0 auto;
+		padding: 12px 12px 0;
+	}
+
+	/* Info-Panel wird zur Statuszeile */
+	.info-panel { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; padding: 0; border: 0; background: none; min-height: 40px; }
+	.roll-status { flex: 1 1 auto; flex-direction: row; align-items: center; justify-content: space-between; gap: 6px; }
+	.roll-heading .section-kicker { display: none; }
+	.roll-heading .status-dot { display: block; }
+	.panel-title { font-size: 15px; }
+	.info-panel .panel-title { white-space: nowrap; }
+	.status-chips { flex-direction: row; align-items: center; gap: 6px; }
+	.object-count { align-items: baseline; gap: 5px; padding: 5px 8px; border: 1px solid var(--line); background: var(--panel-solid); }
+	.object-count strong { font-size: 14px; line-height: 1; }
+	.object-count span { padding: 0; font-size: 11px; letter-spacing: 0; }
+	.enemy-meter { padding: 5px 8px; border: 1px solid var(--danger); background: rgba(255, 84, 104, 0.1); }
+	.enemy-meter-label { gap: 4px; font-size: 12px; letter-spacing: 0; color: #ff9eaa; }
+	.enemy-meter-label > span { order: 2; }
+	/* Chips einzeilig halten; auf sehr schmalen Geräten rutscht die Chip-Gruppe in eine zweite Zeile */
+	.enemy-meter-label { white-space: nowrap; }
+	.roll-status { flex-wrap: wrap; }
+	.enemy-meter-bar, .config-list, .info-panel .board-footer { display: none; }
+
+	/* Board in voller Breite, quadratisch */
+	.board-panel { --bracket-size: 14px; display: block; padding: 8px; container-type: normal; }
+	.board-wrap { width: 100%; height: auto; aspect-ratio: 1 / 1; }
+	.axis-label { font-size: 12px; }
+	.cell { border-radius: 3px; }
+	.cell:not(.occupied):not(.blocked)::after { width: 8px; height: 8px; }
+	.cell.occupied::before { display: none; }
+	.cell-marker { width: 44%; height: 44%; }
+	.cell.occupied.resource::after { width: 76%; height: 76%; }
+	.cell.occupied.enemy::after { display: none; }
+	.enemy-marker { width: 46%; height: 46%; }
+	.enemy-resource-dot { width: 8px; height: 8px; }
+	.enemy-resource-dot-1 { bottom: 6%; left: 6%; }
+	.enemy-resource-dot-2 { bottom: 6%; right: 6%; }
+
+	/* Fundstücke als 2-Spalten-Kacheln */
+	.details-panel { display: contents; }
+	.panel-heading { align-items: baseline; }
+	.details-panel .section-kicker, .limit-chip, .rules-note { display: none; }
+	.details-panel .panel-title { font-family: var(--font-mono); font-weight: 400; font-size: 12px; letter-spacing: 0.22em; color: var(--muted); }
+	.rules-short { display: inline; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+	.results-list { flex: 0 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; overflow: visible; }
+	.result-item { gap: 8px; min-height: 44px; padding: 6px 10px; border: 1px solid var(--line); background: var(--panel); }
+	.result-item::before { display: none; }
+	.result-item.is-enemy { border-color: rgba(255, 84, 104, 0.6); background: var(--cell-enemy); }
+	.result-main { gap: 8px; }
+	.result-icon { width: 18px; height: 18px; border: 0; }
+	.result-icon > .planet { --glow: 8px; width: 18px; height: 18px; }
+	.enemy-result-icon { width: 22px; height: 25px; }
+	.result-enemy-marker { width: 12px; height: 12px; }
+	.result-name { font-size: 14px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.result-type { display: none; }
+	.result-enemy-resources { gap: 4px; margin-top: 2px; font-size: 0; }
+	.result-resource { gap: 0; }
+	.result-resource-dot { --glow: 4px; width: 9px; height: 9px; }
+	.result-resource-separator { font-size: 10px; }
+	.result-coordinate { font-size: 15px; }
+
+	.reroll-button { min-height: 56px; padding: 0 22px; font-size: 16px; margin-top: auto; clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
+
+	.app-footer { justify-content: space-between; gap: 10px; padding: 0 14px; border-top: 0; background: none; font-size: 11px; letter-spacing: 0.12em; max-width: 640px; width: 100%; margin: 0 auto; }
+	.footer-line, .footer-system { display: none; }
+	.footer-links { display: flex; gap: 14px; margin-left: auto; }
 }
-.changelog-link:hover { text-decoration: underline; }
 
 /* ==========================================================================
    Weitere Ansichten – Settings, Scan, Changelog, Roadmap (an Tokens angeglichen)
@@ -758,17 +763,6 @@ a:hover { color: #b5f1ff; }
 .scan-legend-swatch.blocked { border: 1px solid rgba(255, 181, 71, 0.6); background: repeating-linear-gradient(135deg, rgba(255, 181, 71, 0.35) 0 2px, transparent 2px 5px); }
 .scan-controls .primary-button,
 .scan-controls .secondary-button { width: 100%; }
-.visually-hidden {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	padding: 0;
-	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
-	white-space: nowrap;
-	border: 0;
-}
-
 /* Changelog & Roadmap ---------------------------------------------------- */
 .changelog-page {
 	width: min(760px, calc(100% - 64px));
@@ -809,20 +803,13 @@ a:hover { color: #b5f1ff; }
 .changelog-back { display: inline-block; margin-top: 26px; font-family: var(--font-mono); font-size: 14px; text-decoration: none; }
 .changelog-back:hover { text-decoration: underline; }
 
-/* Responsive ------------------------------------------------------------- */
+
+/* Settings & Scan im Inhaltsbereich (scrollen dort intern) --------------- */
+.settings-view,
+.scan-view { display: flex; flex-direction: column; gap: 20px; }
+
+/* Responsive für Settings, Scan, Changelog -------------------------------- */
 @media (max-width: 900px) {
-	.app-shell { width: calc(100% - 32px); padding: 20px 0 96px; gap: 24px; }
-	.board-panel, .details-panel { flex-basis: 100%; padding: 20px; }
-	.settings-view, .scan-view { padding: 20px; }
-	/* Zentrale Funktion bleibt erreichbar */
-	.reroll-button {
-		position: fixed;
-		z-index: 10;
-		left: 16px;
-		right: 16px;
-		bottom: max(16px, env(safe-area-inset-bottom));
-		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-	}
 	.changelog-page { width: calc(100% - 32px); }
 }
 @media (max-width: 760px) {
@@ -830,21 +817,7 @@ a:hover { color: #b5f1ff; }
 	#config-editor { min-height: 380px; }
 }
 @media (max-width: 600px) {
-	.app-header { padding-bottom: 16px; }
-	.header-actions { width: 100%; }
-	.scan-button, .settings-button { flex: 1 1 auto; justify-content: center; padding: 0 12px; }
-	.header-meta { flex-basis: 100%; justify-content: center; }
-	.intro-copy { font-size: 16px; }
-	.intro-stat strong { font-size: 16px; }
-	.panel-heading h3 { font-size: 20px; }
-	.object-count strong { font-size: 28px; }
-	.board, .board-wrap { --axis-size: 18px; --board-gap: 4px; }
-	.axis-label { font-size: 12px; }
-	.cell.occupied::before { display: none; } /* Koordinaten-Label bei kleinen Zellen ausblenden */
-	.enemy-resource-dot { width: 8px; height: 8px; }
-	.result-coordinate { font-size: 16px; }
-	.footer-line { display: none; }
-	.settings-view, .scan-view { padding: 16px; }
+	.app-main > .settings-view, .app-main > .scan-view { padding: 16px 12px; }
 	.settings-heading { flex-direction: column; gap: 8px; }
 	.settings-heading h2 { font-size: 22px; }
 	.config-editor-panel, .config-info, .scan-preview-panel, .scan-controls { padding: 14px; }
@@ -854,4 +827,17 @@ a:hover { color: #b5f1ff; }
 	.settings-actions > button { width: 100%; }
 	#config-editor { font-size: 12px; }
 	.changelog-page .app-header { margin-bottom: 36px; }
+}
+
+/* Schmale Phones: Statuszeile etwas kompakter, damit sie bei 390 px einzeilig bleibt */
+@media (max-width: 420px) {
+	.status-chips { gap: 4px; }
+	.object-count, .enemy-meter { padding: 5px 6px; }
+	.info-panel .panel-title { font-size: 14px; }
+}
+
+/* Sehr schmale Geräte (≤ 360 px): Titel kleiner, damit Logo und Icon-Buttons nebeneinander passen */
+@media (max-width: 360px) {
+	.brand-lockup { gap: 8px; }
+	.app-header h1 { font-size: 13px; letter-spacing: 0.06em; }
 }
