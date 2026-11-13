@@ -841,3 +841,11 @@ a:hover { color: #b5f1ff; }
 	.brand-lockup { gap: 8px; }
 	.app-header h1 { font-size: 13px; letter-spacing: 0.06em; }
 }
+
+/* Installierte Web-App (iOS „black-translucent“, viewport-fit=cover):
+   Kopf- und Statusleiste weichen Notch und Home-Indikator aus. */
+.app-header { height: calc(68px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px); }
+.app-footer { height: calc(40px + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (max-width: 1179px) {
+	.app-header { height: calc(60px + env(safe-area-inset-top, 0px)); }
+}

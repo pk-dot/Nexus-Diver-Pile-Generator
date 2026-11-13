@@ -2,10 +2,17 @@
 <html lang="de">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 		<meta name="theme-color" content="#060a14" />
-		<meta name="application-version" content="1.3.0" />
+		<meta name="application-version" content="1.4.0" />
 		<title>Changelog | Pile Generator</title>
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="apple-mobile-web-app-title" content="Pile Gen" />
+		<link rel="manifest" href="manifest.webmanifest" />
+		<link rel="icon" type="image/png" sizes="32x32" href="img/app/favicon-32.png" />
+		<link rel="apple-touch-icon" href="img/app/apple-touch-icon.png" />
 		<link rel="stylesheet" href="styles.css" />
 	</head>
 	<body>
@@ -18,11 +25,20 @@
 						<h1>Pile Generator</h1>
 					</div>
 				</div>
-				<span class="app-version">v1.3.0</span>
+				<span class="app-version">v1.4.0</span>
 			</header>
 
 			<p class="eyebrow accent-label">VERSIONSHISTORIE</p>
 			<h2>Changelog</h2>
+			<article class="changelog-entry">
+				<h3>Version 1.4.0</h3>
+				<ul>
+					<li>Installierbare Web-App: Der Pile Generator lässt sich auf Smartphone, Tablet und Desktop zum Home-Bildschirm hinzufügen und startet ohne Browserleiste.</li>
+					<li>Offline-Nutzung nach dem ersten Aufruf; online wird immer die aktuelle Version geladen.</li>
+					<li>Neues App-Icon im Deep-Orbit-Stil (Hexagon „ND“ auf Radar) inklusive Favicon und Apple-Touch-Icon.</li>
+					<li>Kopf- und Statusleiste berücksichtigen Notch und Home-Indikator auf dem iPhone.</li>
+				</ul>
+			</article>
 			<article class="changelog-entry">
 				<h3>Version 1.3.0</h3>
 				<ul>

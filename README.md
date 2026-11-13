@@ -32,6 +32,16 @@ Danach im Browser öffnen:
 http://localhost:4173
 ```
 
+## Als App installieren
+
+Der Pile Generator ist eine installierbare Web-App (PWA) und funktioniert nach dem ersten Aufruf auch offline.
+
+- **iPhone/iPad (Safari):** Teilen → „Zum Home-Bildschirm“.
+- **Android (Chrome):** Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.
+- **Desktop (Chrome/Edge):** Installieren-Symbol in der Adressleiste.
+
+Voraussetzung ist HTTPS (lokal genügt `localhost`). Zuständige Dateien: `manifest.webmanifest`, `sw.js` und die Icons in `img/app/`. Bei einer neuen Version `CACHE_VERSION` in `sw.js` zusammen mit `APP_VERSION` in `app.js` anheben – ein Test prüft das.
+
 ## Deployment
 
 Mit dem Build-Skript wird der Ordner `dist/` mit allen Dateien für den Server erzeugt:
@@ -73,6 +83,7 @@ roadmap.html     Geplante Features
 img/             Gegner- und UI-Icons
 tests/           Automatisierte Tests (node --test)
 build-dist.sh    Erstellt dist/ für den Server
+manifest.webmanifest, sw.js  Installierbare Web-App (PWA)
 ```
 
-Aktuelle Version: **1.3.0**
+Aktuelle Version: **1.4.0**

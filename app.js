@@ -1,4 +1,4 @@
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.4.0';
 const CONFIG_STORAGE_KEY = 'pile-generator-config';
 const BOARD_MASK_STORAGE_KEY = 'pile-generator-board-mask';
 const ENEMY_RESOURCE_COUNT = 2;
@@ -608,3 +608,8 @@ localStorage.removeItem('pile-generator-board-image');
 updateConfigStats();
 renderScanGrid();
 generateAndRender();
+
+// Installierbare Web-App: Service Worker für Offline-Nutzung (nur über http/https)
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+	navigator.serviceWorker.register('sw.js').catch((error) => console.warn('Service Worker nicht registriert:', error));
+}

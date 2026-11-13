@@ -1,0 +1,20 @@
+{
+	"id": "./",
+	"name": "Nexus Diver Pile Generator",
+	"short_name": "Pile Gen",
+	"description": "Zufällige Spielfeld-Quadranten mit Ressourcen und Gegnern für Nexus Diver.",
+	"lang": "de",
+	"dir": "ltr",
+	"start_url": "./",
+	"scope": "./",
+	"display": "standalone",
+	"background_color": "#060a14",
+	"theme_color": "#060a14",
+	"categories": ["games", "utilities"],
+	"icons": [
+		{ "src": "img/app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+		{ "src": "img/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+		{ "src": "img/app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+		{ "src": "img/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+	]
+}
