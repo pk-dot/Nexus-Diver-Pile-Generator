@@ -287,7 +287,7 @@ a:hover { color: #b5f1ff; }
 .board {
 	display: grid;
 	grid-template-columns: var(--axis-size) repeat(var(--grid-columns, 7), minmax(0, 1fr));
-	grid-template-rows: var(--axis-size) repeat(var(--grid-rows, 7), minmax(0, 1fr));
+	grid-template-rows: repeat(var(--grid-rows, 7), minmax(0, 1fr)) var(--axis-size);
 	gap: var(--board-gap);
 	width: 100%;
 	height: 100%;
@@ -300,7 +300,7 @@ a:hover { color: #b5f1ff; }
 	content: '';
 	position: absolute;
 	z-index: -1;
-	inset: calc(var(--axis-size) + var(--board-gap)) 0 0 calc(var(--axis-size) + var(--board-gap));
+	inset: 0 0 calc(var(--axis-size) + var(--board-gap)) calc(var(--axis-size) + var(--board-gap));
 	pointer-events: none;
 }
 .board-wrap::before {

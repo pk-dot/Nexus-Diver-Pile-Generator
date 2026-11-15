@@ -1,6 +1,8 @@
 const APP_VERSION = '1.4.0';
 const CONFIG_STORAGE_KEY = 'pile-generator-config';
 const BOARD_MASK_STORAGE_KEY = 'pile-generator-board-mask';
+const BOARD_MASK_ORIGIN_KEY = 'pile-generator-board-mask-origin';
+const BOARD_MASK_ORIGIN = 'bottom-left';
 const ENEMY_RESOURCE_COUNT = 2;
 
 const defaultConfig = {
@@ -157,6 +159,27 @@ function getCellLabel(row, column) {
 	return `${config.grid.yAxisLabels[row]}${config.grid.xAxisLabels[column]}`;
 }
 
+// Koordinatenursprung unten links: A1 ist das Feld unten links.
+// Bildschirmzeile 0 (oben) entspricht daher der letzten Y-Achsen-Zeile.
+function getRowFromTop(visualRow) {
+	return config.grid.rows - 1 - visualRow;
+}
+
+// Wandmasken aus Versionen mit Ursprung oben links vertikal spiegeln.
+function mirrorMaskRows(labels) {
+	const { yAxisLabels, xAxisLabels } = config.grid;
+	return labels.map((label) => {
+		const row = yAxisLabels.findIndex((rowLabel) => label.startsWith(rowLabel) && xAxisLabels.includes(label.slice(rowLabel.length)));
+		if (row === -1) return label;
+		return `${yAxisLabels[yAxisLabels.length - 1 - row]}${label.slice(yAxisLabels[row].length)}`;
+	});
+}
+
+function saveBoardMask() {
+	localStorage.setItem(BOARD_MASK_STORAGE_KEY, JSON.stringify([...blockedCells]));
+	localStorage.setItem(BOARD_MASK_ORIGIN_KEY, BOARD_MASK_ORIGIN);
+}
+
 function renderScanGrid() {
 	scanGridElement.innerHTML = '';
 	scanGridElement.style.setProperty('--scan-columns', config.grid.columns);
@@ -169,9 +192,9 @@ function renderScanGrid() {
 	scanPreviewWrap.classList.toggle('has-image', Boolean(scanCanvas.width));
 	if (scanCanvas.width) scanPreviewWrap.style.aspectRatio = `${scanCanvas.width} / ${scanCanvas.height}`;
 
-	for (let row = 0; row < config.grid.rows; row += 1) {
+	for (let visualRow = 0; visualRow < config.grid.rows; visualRow += 1) {
 		for (let column = 0; column < config.grid.columns; column += 1) {
-			const label = getCellLabel(row, column);
+			const label = getCellLabel(getRowFromTop(visualRow), column);
 			const cell = document.createElement('button');
 			cell.type = 'button';
 			cell.className = `scan-cell${pendingBlockedCells.has(label) ? ' blocked' : ''}`;
@@ -248,12 +271,12 @@ function analyzeScanImage() {
 	const threshold = Math.max(34, averageBrightness * 0.58);
 	pendingBlockedCells = new Set();
 
-	for (let row = 0; row < config.grid.rows; row += 1) {
+	for (let visualRow = 0; visualRow < config.grid.rows; visualRow += 1) {
 		for (let column = 0; column < config.grid.columns; column += 1) {
 			const startX = Math.floor(((column + 0.2) * scanCanvas.width) / config.grid.columns);
 			const endX = Math.floor(((column + 0.8) * scanCanvas.width) / config.grid.columns);
-			const startY = Math.floor(((row + 0.2) * scanCanvas.height) / config.grid.rows);
-			const endY = Math.floor(((row + 0.8) * scanCanvas.height) / config.grid.rows);
+			const startY = Math.floor(((visualRow + 0.2) * scanCanvas.height) / config.grid.rows);
+			const endY = Math.floor(((visualRow + 0.8) * scanCanvas.height) / config.grid.rows);
 			let brightness = 0;
 			let darkPixels = 0;
 			let blackPixels = 0;
@@ -277,7 +300,7 @@ function analyzeScanImage() {
 			const darkRatio = darkPixels / samples;
 			const blackRatio = blackPixels / samples;
 			if ((cellBrightness < threshold && cellBrightness < averageBrightness * brightnessFactor) || (darkRatio > darkRatioThreshold && cellBrightness < averageBrightness * 0.72) || blackRatio > blackRatioThreshold) {
-				pendingBlockedCells.add(getCellLabel(row, column));
+				pendingBlockedCells.add(getCellLabel(getRowFromTop(visualRow), column));
 			}
 		}
 	}
@@ -403,11 +426,9 @@ function renderBoard(objects) {
 	boardElement.innerHTML = '';
 	boardElement.style.setProperty('--grid-columns', config.grid.columns);
 	boardElement.style.setProperty('--grid-rows', config.grid.rows);
-	boardElement.append(createAxisLabel(''));
 
-	config.grid.xAxisLabels.forEach((label) => boardElement.append(createAxisLabel(label)));
-
-	config.grid.yAxisLabels.forEach((rowLabel, row) => {
+	for (let visualRow = 0; visualRow < config.grid.rows; visualRow += 1) {
+		const rowLabel = config.grid.yAxisLabels[getRowFromTop(visualRow)];
 		boardElement.append(createAxisLabel(rowLabel));
 		config.grid.xAxisLabels.forEach((columnLabel, column) => {
 			const label = `${rowLabel}${columnLabel}`;
@@ -416,7 +437,7 @@ function renderBoard(objects) {
 			const cell = document.createElement('div');
 			cell.dataset.label = label;
 			cell.className = `cell${isBlocked ? ' blocked' : ''}${object ? ` occupied ${object.type}` : ''}`;
-			cell.style.animationDelay = `${(row * config.grid.columns + column) * 12}ms`;
+			cell.style.animationDelay = `${(visualRow * config.grid.columns + column) * 12}ms`;
 			const cellDescription = object ? `${label}: ${describeObject(object)}` : isBlocked ? `${label}: gesperrt` : `${label}: frei`;
 			cell.setAttribute('aria-label', cellDescription);
 			cell.title = cellDescription;
@@ -436,7 +457,10 @@ function renderBoard(objects) {
 			}
 			boardElement.append(cell);
 		});
-	});
+	}
+
+	boardElement.append(createAxisLabel(''));
+	config.grid.xAxisLabels.forEach((label) => boardElement.append(createAxisLabel(label)));
 }
 
 function createAxisLabel(text) {
@@ -554,7 +578,7 @@ resetScanButton.addEventListener('click', () => {
 });
 applyScanButton.addEventListener('click', () => {
 	blockedCells = new Set(pendingBlockedCells);
-	localStorage.setItem(BOARD_MASK_STORAGE_KEY, JSON.stringify([...blockedCells]));
+	saveBoardMask();
 	generateAndRender();
 	setScanOpen(false);
 });
@@ -598,7 +622,12 @@ try {
 
 try {
 	const savedBoardMask = localStorage.getItem(BOARD_MASK_STORAGE_KEY);
-	if (savedBoardMask) blockedCells = new Set(JSON.parse(savedBoardMask));
+	if (savedBoardMask) {
+		const savedLabels = JSON.parse(savedBoardMask);
+		const isLegacyOrigin = localStorage.getItem(BOARD_MASK_ORIGIN_KEY) !== BOARD_MASK_ORIGIN;
+		blockedCells = new Set(isLegacyOrigin ? mirrorMaskRows(savedLabels) : savedLabels);
+		if (isLegacyOrigin) saveBoardMask();
+	}
 } catch {
 	localStorage.removeItem(BOARD_MASK_STORAGE_KEY);
 }
