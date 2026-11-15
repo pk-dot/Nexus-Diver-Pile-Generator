@@ -1,6 +1,6 @@
 // Service Worker – macht den Pile Generator installierbar und offline nutzbar.
 // CACHE_VERSION muss zu APP_VERSION in app.js passen (wird per Test geprüft).
-const CACHE_VERSION = '1.4.0';
+const CACHE_VERSION = '1.4.1';
 const CACHE_NAME = `pile-generator-${CACHE_VERSION}`;
 const FONT_CACHE = 'pile-generator-fonts';
 

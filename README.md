@@ -86,4 +86,4 @@ build-dist.sh    Erstellt dist/ für den Server
 manifest.webmanifest, sw.js  Installierbare Web-App (PWA)
 ```
 
-Aktuelle Version: **1.4.0**
+Aktuelle Version: **1.4.1**
